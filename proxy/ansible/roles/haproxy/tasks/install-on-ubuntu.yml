@@ -1,0 +1,33 @@
+- name: Install essential packages
+  package:
+    name:
+      - curl
+      - gnupg2
+      - ca-certificates
+      - lsb-release
+      - ubuntu-keyring
+      - software-properties-common
+    state: present
+    install_recommends: no
+
+- name: Configure HAproxy ppa
+  apt_repository:
+    repo: ppa:vbernat/haproxy-2.5
+    state: present
+
+- name: Install HAProxy
+  apt:
+    name: "haproxy=2.5.*"
+    update_cache: yes
+
+- name: Configure HAProxy
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Start HAProxy
+  systemd:
+    name: haproxy
+    state: started
+    daemon_reload: yes
+    enabled: no

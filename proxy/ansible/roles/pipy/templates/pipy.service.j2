@@ -1,0 +1,17 @@
+[Unit]
+Description=pipy
+Documentation=https://flomesh.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment=PIPY_CONFIG_FILE=/etc/pipy/main.js
+Environment=PIPY_SPAWN={{ansible_processor_vcpus - 1}}
+ExecStart=/usr/bin/pipy-start.sh pipy docker-start
+ExecStop=/bin/killall pipy
+User=pipy
+WorkingDirectory=/etc/pipy
+LimitNOFILE=655360
+
+[Install]
+WantedBy=multi-user.target

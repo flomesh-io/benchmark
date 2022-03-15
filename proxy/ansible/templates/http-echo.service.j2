@@ -1,0 +1,15 @@
+[Unit]
+Description=http-echo
+Documentation=https://github.com/hashicorp/http-echo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/http-echo -text "hello http-echo"
+ExecStop=/bin/kill -9 $MAINPID
+StandardOutput=null
+StandardError=null
+LimitNOFILE={{ulimit_nofile|default(655360)}}
+
+[Install]
+WantedBy=multi-user.target

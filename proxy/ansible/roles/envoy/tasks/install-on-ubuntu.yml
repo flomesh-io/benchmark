@@ -1,0 +1,91 @@
+- name: Install essential packages
+  package:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg2
+      - lsb-release
+    state: present
+
+- name: Remove distribution's docker
+  package:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+
+- name: Install keyring
+  shell: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor | tee /usr/share/keyrings/docker-archive-keyring.gpg"
+
+- name: Configure docker repo
+  shell: 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null'
+
+- name: Install docker
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: yes
+
+- name: Start docker
+  systemd:
+    name: docker
+    state: started
+
+- name: Pull envoy image
+  shell: |
+    docker pull envoyproxy/envoy:v1.21.1
+    docker create --name=copy envoyproxy/envoy:v1.21.1
+    docker cp copy:/usr/local/bin/envoy /usr/bin/envoy
+    docker rm -f copy
+
+- name: Create envoy user
+  user:
+    name: envoy
+    system: yes
+
+- name: Create configure dir
+  file:
+    state: directory
+    path: /etc/envoy
+
+- name: Configure envoy
+  template:
+    src: envoy.yaml.j2
+    dest: /etc/envoy/envoy.yaml
+
+- name: Configure systemd
+  template:
+    src: envoy.service.j2
+    dest: /etc/systemd/system/envoy.service
+
+- name: Start envoy
+  systemd:
+    name: envoy
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Stop docker
+  systemd:
+    name: docker
+    state: stopped
+    enabled: no
+
+- name: Stop docker.socket
+  systemd:
+    name: docker.socket
+    state: stopped
+    enabled: no
+
+- name: Stop containerd
+  systemd:
+    name: containerd
+    state: stopped
+    enabled: no
+

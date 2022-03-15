@@ -1,0 +1,2 @@
+realserver_port: 5678
+nginx_enable_keeaplive: false

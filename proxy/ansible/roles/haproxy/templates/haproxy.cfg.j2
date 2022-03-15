@@ -1,0 +1,26 @@
+global
+    cpu-map 1 0
+    cpu-map 2 1
+    ssl-server-verify none
+    log /dev/null local0
+    chroot /var/lib/haproxy
+    maxconn 65536
+defaults
+    log    global
+    #option httplog
+    option http-keep-alive
+    mode http
+    timeout connect 10s
+    timeout server  1m
+    timeout client  1m
+frontend Local_Server
+    bind 0.0.0.0:28080
+    #bind 0.0.0.0:28443 ssl crt /etc/ssl/certs/bundle-hapee.pem
+    #redirect scheme https code 301 if !{ ssl_fc }
+    #http-request set-header Connection keep-alive
+    default_backend Web-Pool
+backend Web-Pool
+    mode http
+{% for host in groups['realserver_group'] %}
+    server {{host}} {{hostvars[host]['ansible_default_ipv4']['address']}}:{{realserver_port|default(5678)}}
+{% endfor %}

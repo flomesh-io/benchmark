@@ -1,0 +1,10 @@
+pipy()
+
+.listen(38080)
+	.demuxHTTP('forward')
+
+.pipeline('forward')
+	.muxHTTP('connection', '')
+
+.pipeline('connection')
+	.connect('{{hostvars[groups["realserver_group"][0]]["ansible_default_ipv4"]["address"]}}:{{realserver_port|default(5678)}}')

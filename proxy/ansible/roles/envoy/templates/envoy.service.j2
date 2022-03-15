@@ -1,0 +1,15 @@
+[Unit]
+Description=envoy
+Documentation=https://envoyproxy.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/envoy -c /etc/envoy/envoy.yaml
+ExecStop=/bin/kill $MAINPID
+User=envoy
+WorkingDirectory=/etc/envoy
+LimitNOFILE=655360
+
+[Install]
+WantedBy=multi-user.target

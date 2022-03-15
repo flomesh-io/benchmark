@@ -1,0 +1,35 @@
+- name: Install essential packages
+  package:
+    name:
+      - curl
+      - gnupg2
+      - ca-certificates
+      - lsb-release
+      - ubuntu-keyring
+    state: present
+
+- name: Import keyring
+  shell: curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null
+
+- name: Configure repo
+  shell: 'echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/ubuntu `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list'
+
+- name: Pin repo
+  shell: 'echo "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" | tee /etc/apt/preferences.d/99nginx'
+
+- name: Install nginx
+  apt:
+    name: "nginx=1.20.2-1~{{ansible_distribution_release}}"
+    update_cache: yes
+
+- name: Configure nginx
+  template:
+    src: benchmark.conf.j2
+    dest: /etc/nginx/conf.d/benchmark.conf
+
+- name: Start nginx
+  systemd:
+    name: nginx
+    state: started
+    daemon_reload: yes
+    enabled: no

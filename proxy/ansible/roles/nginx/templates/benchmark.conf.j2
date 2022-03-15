@@ -1,0 +1,30 @@
+upstream http-echo {
+{% if nginx_enable_keeaplive %}
+	keepalive 100;
+{% endif %}
+{% for host in groups['realserver_group'] %}
+	server {{hostvars[host]['ansible_default_ipv4']['address']}}:{{realserver_port|default(5678)}};
+{% endfor %}
+}
+
+server {
+	listen 18080;
+
+	access_log off;
+	error_log off;
+
+	location / {
+		proxy_read_timeout     300;
+		proxy_connect_timeout  300;
+
+{% if nginx_enable_keeaplive %}
+		# Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+		#proxy_http_version 1.1;
+
+		# Remove the Connection header if the client sends it,
+		# it could be "close" to close a keepalive connection
+		#proxy_set_header Connection "";
+{% endif %}
+		proxy_pass http://http-echo;
+	}
+}

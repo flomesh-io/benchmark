@@ -1,0 +1,8 @@
+[client_group]
+client
+
+[proxy_group]
+proxy
+
+[realserver_group]
+server

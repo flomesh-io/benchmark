@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart', 'bar', 'line']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      const report_json_data = {"plan": {"duration": "5m", "connection": "256", "rate": "1024", "thread": "2"}, "result": {"haproxy": {"lat_max": 31.52, "req_max": 1780.0, "lat_avg": 0.97, "tot_requests": 306990.0, "read": 54641295.36, "err_connect": 0, "req_stdev": 117.46, "err_write": 0, "err_timeout": 0, "percentiles": {"p99": 1.97, "p75": 1.27, "p99.9": 2.77, "p90": 1.52, "p99.99": 22.01, "p100": 31.53, "p99.999": 30.22, "p50": 0.95}, "tot_duration": 300000.0, "lat_stdev": 0.57366, "err_read": 0, "read_tot": 182149.12, "req_sec_tot": 1023.3, "req_avg": 538.23}, "nginx": {"lat_max": 10.54, "req_max": 10330.0, "lat_avg": 2.87, "tot_requests": 306584.0, "read": 68671242.24, "err_connect": 0, "req_stdev": 1350.0, "err_write": 0, "err_timeout": 0, "percentiles": {"p99": 7.41, "p75": 4.66, "p99.9": 8.61, "p90": 5.84, "p99.99": 9.53, "p100": 10.54, "p99.999": 10.04, "p50": 1.94}, "tot_duration": 300000.0, "lat_stdev": 2.05, "err_read": 0, "read_tot": 228904.96, "req_sec_tot": 1021.94, "req_avg": 535.17}, "envoy": {"lat_max": 2.97, "req_max": 1000.0, "lat_avg": 1.16, "tot_requests": 306990.0, "read": 69688360.96, "err_connect": 0, "req_stdev": 121.1, "err_write": 0, "err_timeout": 0, "percentiles": {"p99": 2.26, "p75": 1.48, "p99.9": 2.57, "p90": 1.78, "p99.99": 2.81, "p100": 2.97, "p99.999": 2.9, "p50": 1.13}, "tot_duration": 300000.0, "lat_stdev": 0.46051, "err_read": 0, "read_tot": 232284.16, "req_sec_tot": 1023.29, "req_avg": 538.8}, "pipy": {"lat_max": 5.84, "req_max": 13780.0, "lat_avg": 1.62, "tot_requests": 306584.0, "read": 61928898.56, "err_connect": 0, "req_stdev": 1700.0, "err_write": 0, "err_timeout": 0, "percentiles": {"p99": 3.94, "p75": 2.36, "p99.9": 4.75, "p90": 2.9, "p99.99": 5.38, "p100": 5.85, "p99.999": 5.76, "p50": 1.42}, "tot_duration": 300000.0, "lat_stdev": 0.92, "err_read": 0, "read_tot": 206428.16, "req_sec_tot": 1021.94, "req_avg": 539.95}, "rs": {"lat_max": 8.02, "req_max": 13780.0, "lat_avg": 1.47, "tot_requests": 306584.0, "read": 54567895.04, "err_connect": 0, "req_stdev": 1710.0, "err_write": 0, "err_timeout": 0, "percentiles": {"p99": 5.06, "p75": 1.96, "p99.9": 6.56, "p90": 2.73, "p99.99": 7.3, "p100": 8.02, "p99.999": 7.96, "p50": 1.22}, "tot_duration": 300000.0, "lat_stdev": 1.0, "err_read": 0, "read_tot": 181903.36, "req_sec_tot": 1021.94, "req_avg": 545.16}}}
+
+      const percentiles = ["p50", "p75", "p90", "p99", "p99.9", "p99.99", "p99.999", "p100"];
+
+      const benchmarkTarget = Object.keys(report_json_data.result);
+
+      const plan = report_json_data.plan;
+
+      function drawChart() {
+              google.charts.load('current', {packages: ['corechart', 'line']});
+              google.charts.setOnLoadCallback(drawCrosshairs);
+
+              function drawCrosshairs() {
+                      var report_data = new google.visualization.DataTable();
+
+                      header = [{type: 'string', label: 'percentiles'}];
+                      for (let i=0; i< benchmarkTarget.length; i++) {
+                              header.push({type:'number', label: benchmarkTarget[i]});
+                            }
+
+                      latencyDataTable = [
+                              header,
+                            ];
+
+                      for (let i=0; i < percentiles.length; i++) {
+                              var row = [];
+                              row.push(percentiles[i]);
+                              for (let j=0; j<benchmarkTarget.length; j++) {
+                                      row.push(report_json_data.result[benchmarkTarget[j]].percentiles[percentiles[i]]);
+                                    }
+                              latencyDataTable.push(row);
+                            }
+
+                      console.table(latencyDataTable);
+
+                      var report_data = new google.visualization.arrayToDataTable(latencyDataTable);
+
+                      // ref: https://qiita.com/hippocampus-coronatus/items/982255fc4f61c3f1ff52
+                      var options = {
+                              title: `thread: ${plan.thread}, connection: ${plan.connection}, rate: ${plan.rate}, duration: ${plan.duration}`,
+                              hAxis: {
+                                      title: 'Percentiles'
+                                    },
+                              vAxis: {
+                                      title: 'Latency (ms)',
+                                      //scaleType: 'log'
+                                    },
+                              curveType: 'function',
+                              crosshair: {
+                                      trigger: 'both',
+                                      focused: {
+                                              color: 'green',
+                                              orientation: 'vertical'
+                                            },
+                                      selected: {
+                                              color: 'aqua',
+                                              opacity: 0.3,
+                                              orientation: 'horizontal'
+                                            }
+                                    },
+                              tooltip: {
+                                      trigger: 'both'
+                                    },
+                              focusTarget: 'category'
+                            };
+
+                      var report_chart = new google.visualization.LineChart(document.getElementById('report'));
+
+                      report_chart.draw(report_data, options);
+
+                      document.getElementById("title").innerHTML = `wrk -t ${plan.thread} -c ${plan.connection} -R ${plan.rate} -d ${plan.duration} server:port`;
+                    }
+            }
+    </script>
+  </head>
+  <body>
+    <h2 id='title' style="width: 50%; margin: auto;"></h2>
+    <div id="report" style="width: 1600; height: 800px;"></div>
+  </body>
+</html>

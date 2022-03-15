@@ -1,0 +1,138 @@
+---
+- hosts: all
+  gather_facts: yes
+  become: yes
+  tags: [always]
+
+- hosts: all
+  gather_facts: yes
+  become: yes
+  tags: [init]
+
+  tasks:
+    - name: Set kernel options
+      sysctl:
+        name: "{{item.name}}"
+        value: "{{item.value}}"
+        sysctl_set: yes
+        reload: yes
+        state: present
+      with_items:
+        - {name: "net.ipv4.ip_local_port_range", value: "1024 64999"}
+        - {name: "net.ipv4.tcp_timestamps", value: "0"}
+
+    - name: Set ulimit
+      pam_limits:
+        domain: "*"
+        limit_type: '-'
+        limit_item: "nofile"
+        value: 655360
+
+    - name: Disable irqbalance
+      systemd:
+        enabled: no
+        state: stopped
+        name: irqbalance
+
+    - name: Disable cron
+      systemd:
+        enabled: no
+        state: stopped
+        name: cron
+
+- hosts: client_group
+  gather_facts: yes
+  become: yes
+  tags: [client]
+
+  tasks:
+    - name: Install build essentials
+      package:
+        name:
+          - git
+          - make
+          - gcc
+        state: present
+
+    - name: Install header packages
+      package:
+        name:
+          - libssl-dev
+          - zlib1g-dev
+          - python3-pip
+        state: present
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: Install openssl devel
+      package:
+        name:
+          - openssl-devel
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+
+    - name: Install wrk2
+      git:
+        repo: https://github.com/giltene/wrk2.git
+        dest: /tmp/wrk2
+
+    - name: Make wrk2
+      make:
+        chdir: /tmp/wrk2
+        target: all
+
+    - name: Install wrk2
+      copy:
+        remote_src: yes
+        src: /tmp/wrk2/wrk
+        dest: /usr/bin/wrk
+        mode: 0755
+
+    - name: Install autobench2
+      pip:
+        name: autobench2
+
+- hosts: realserver_group
+  gather_facts: yes
+  become: yes
+  tags: [rs, realserver]
+
+  tasks:
+    - name: Download http-echo-x86-64
+      get_url:
+        url: https://github.com/hashicorp/http-echo/releases/download/v0.2.3/http-echo_0.2.3_linux_amd64.tar.gz
+        dest: /tmp/
+
+    - name: Decompress tarball
+      unarchive:
+        remote_src: yes
+        src: /tmp/http-echo_0.2.3_linux_amd64.tar.gz
+        dest: /tmp/
+
+    - name: Install http-echo
+      copy:
+        remote_src: yes
+        src: /tmp/http-echo
+        dest: /usr/bin/http-echo
+        mode: 0755
+
+    - name: Configure systemd
+      template:
+        src: http-echo.service.j2
+        dest: /etc/systemd/system/http-echo.service
+
+    - name: Start http-echo
+      systemd:
+        name: http-echo
+        enabled: yes
+        state: started
+
+- hosts: proxy_group
+  gather_facts: yes
+  become: yes
+  tags: [proxy]
+
+  roles:
+  - {role: 'nginx', tags: 'nginx'}
+  - {role: 'haproxy', tags: 'haproxy'}
+  - {role: 'pipy', tags: 'pipy'}
+  - {role: 'envoy', tags: 'envoy'}

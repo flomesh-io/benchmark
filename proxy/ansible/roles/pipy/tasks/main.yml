@@ -1,0 +1,44 @@
+- name: Download pipy
+  get_url:
+    url: https://github.com/flomesh-io/pipy/releases/download/0.22.0-31/pipy-0.22.0-31.ubuntu20.04-static.tar.gz
+    dest: /tmp/pipy-0.22.0-31.ubuntu20.04-static.tar.gz
+
+- name: Decompress tarball
+  unarchive:
+    remote_src: yes
+    src: /tmp/pipy-0.22.0-31.ubuntu20.04-static.tar.gz
+    dest: /usr/local/bin
+
+- name: Create pipy user
+  user:
+    name: pipy
+    system: yes
+
+- name: Create config dir
+  file:
+    state: directory
+    path: /etc/pipy
+    owner: pipy
+
+- name: Configure pipy
+  template:
+    src: main.js.j2
+    dest: /etc/pipy/main.js
+
+- name: Create start script
+  template:
+    src: pipy-start.sh.j2
+    dest: /usr/bin/pipy-start.sh
+    mode: 0755
+
+- name: Configure systemd
+  template:
+    src: pipy.service.j2
+    dest: /etc/systemd/system/pipy.service
+
+- name: Start pipy
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    state: started
+    name: pipy

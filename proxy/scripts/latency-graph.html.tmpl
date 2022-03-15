@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart', 'bar', 'line']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      const report_json_data = ${full_report}
+
+      const percentiles = ["p50", "p75", "p90", "p99", "p99.9", "p99.99", "p99.999", "p100"];
+
+      const benchmarkTarget = Object.keys(report_json_data.result);
+
+      const plan = report_json_data.plan;
+
+      function drawChart() {
+              google.charts.load('current', {packages: ['corechart', 'line']});
+              google.charts.setOnLoadCallback(drawCrosshairs);
+
+              function drawCrosshairs() {
+                      var report_data = new google.visualization.DataTable();
+
+                      header = [{type: 'string', label: 'percentiles'}];
+                      for (let i=0; i< benchmarkTarget.length; i++) {
+                              header.push({type:'number', label: benchmarkTarget[i]});
+                            }
+
+                      latencyDataTable = [
+                              header,
+                            ];
+
+                      for (let i=0; i < percentiles.length; i++) {
+                              var row = [];
+                              row.push(percentiles[i]);
+                              for (let j=0; j<benchmarkTarget.length; j++) {
+                                      row.push(report_json_data.result[benchmarkTarget[j]].percentiles[percentiles[i]]);
+                                    }
+                              latencyDataTable.push(row);
+                            }
+
+                      console.table(latencyDataTable);
+
+                      var report_data = new google.visualization.arrayToDataTable(latencyDataTable);
+
+                      // ref: https://qiita.com/hippocampus-coronatus/items/982255fc4f61c3f1ff52
+                      var options = {
+                              title: `thread: $${plan.thread}, connection: $${plan.connection}, rate: $${plan.rate}, duration: $${plan.duration}`,
+                              hAxis: {
+                                      title: 'Percentiles'
+                                    },
+                              vAxis: {
+                                      title: 'Latency (ms)',
+                                      //scaleType: 'log'
+                                    },
+                              curveType: 'function',
+                              crosshair: {
+                                      trigger: 'both',
+                                      focused: {
+                                              color: 'green',
+                                              orientation: 'vertical'
+                                            },
+                                      selected: {
+                                              color: 'aqua',
+                                              opacity: 0.3,
+                                              orientation: 'horizontal'
+                                            }
+                                    },
+                              tooltip: {
+                                      trigger: 'both'
+                                    },
+                              focusTarget: 'category'
+                            };
+
+                      var report_chart = new google.visualization.LineChart(document.getElementById('report'));
+
+                      report_chart.draw(report_data, options);
+
+                      document.getElementById("title").innerHTML = `wrk -t $${plan.thread} -c $${plan.connection} -R $${plan.rate} -d $${plan.duration} server:port`;
+                    }
+            }
+    </script>
+  </head>
+  <body>
+    <h2 id='title' style="width: 50%; margin: auto;"></h2>
+    <div id="report" style="width: 1600; height: 800px;"></div>
+  </body>
+</html>
