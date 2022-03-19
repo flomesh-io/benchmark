@@ -10,14 +10,14 @@
     state: present
     install_recommends: no
 
-- name: Configure HAproxy ppa
-  apt_repository:
-    repo: ppa:vbernat/haproxy-2.5
-    state: present
+#- name: Configure HAproxy ppa
+#  apt_repository:
+#    repo: ppa:vbernat/haproxy-2.5
+#    state: present
 
 - name: Install HAProxy
   apt:
-    name: "haproxy=2.5.*"
+    name: "haproxy"
     update_cache: yes
 
 - name: Configure HAProxy

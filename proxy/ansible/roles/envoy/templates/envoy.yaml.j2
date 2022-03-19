@@ -28,8 +28,13 @@ static_resources:
                   prefix: "/"
                 route:
                   cluster: http_echo
+          generate_request_id: false
           http_filters:
           - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+              dynamic_stats: false
+
   clusters:
   - name: http_echo
     connect_timeout: 10s
@@ -48,3 +53,13 @@ static_resources:
                 address: {{hostvars[host]['ansible_default_ipv4']['address']}}
                 port_value: {{realserver_port|default(5678)}}
 {% endfor %}
+    circuit_breakers:
+      thresholds:
+        - priority: DEFAULT
+          max_connections: 655360
+          max_pending_requests: 655360
+          max_requests: 655360
+        - priority: HIGH
+          max_connections: 655360
+          max_pending_requests: 655360
+          max_requests: 655360

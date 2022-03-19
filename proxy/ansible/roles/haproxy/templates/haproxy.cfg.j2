@@ -18,9 +18,11 @@ frontend Local_Server
     #bind 0.0.0.0:28443 ssl crt /etc/ssl/certs/bundle-hapee.pem
     #redirect scheme https code 301 if !{ ssl_fc }
     #http-request set-header Connection keep-alive
+    maxconn 655360
     default_backend Web-Pool
 backend Web-Pool
     mode http
+    http-reuse safe
 {% for host in groups['realserver_group'] %}
     server {{host}} {{hostvars[host]['ansible_default_ipv4']['address']}}:{{realserver_port|default(5678)}}
 {% endfor %}

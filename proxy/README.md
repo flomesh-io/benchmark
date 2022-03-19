@@ -39,6 +39,30 @@ in `throughput.sh` you need to set `proxy` to the target proxy name/type and `pr
 # ./throughput.sh
 ```
 
+### use fortio to as load generator
+
+1. install fortio
+
+2. in the scripts dir, run fortio-test.sh
+
+* Keep same connections, compare results of different QPS, between proxies
+
+test nginx, with 32 connections, QPS increase from 1000 to 8000, step is 1000, duration 1 min.
+
+```
+# ./fortio-test.sh -c 32 -l 1000 -h 8000 -s 1000 -t nginx -d 1m
+```
+
+`-t` could be `nginx`, `haproxy`, `pipy`, `envoy` and `all`
+
+* Keep same QPS, compare results of different connections, for particular proxy
+
+test nginx, with 12000 QPS, connections increase from 16 to 64, step is 16, duration 1 min.
+
+```
+# ./fortio-test.sh -q 12000 -l 16 -h 64 -s 16 -t nginx -d 1m
+```
+
 ## Reference
 
 * https://github.com/CatTail/autobench2

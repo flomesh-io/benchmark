@@ -19,6 +19,7 @@
         state: present
       with_items:
         - {name: "net.ipv4.ip_local_port_range", value: "1024 64999"}
+        - {name: "net.ipv4.ip_local_reserved_ports", value: "18080,28080,38080,48080"}
         - {name: "net.ipv4.tcp_timestamps", value: "0"}
 
     - name: Set ulimit
@@ -33,12 +34,14 @@
         enabled: no
         state: stopped
         name: irqbalance
+      ignore_errors: yes
 
     - name: Disable cron
       systemd:
         enabled: no
         state: stopped
         name: cron
+      ignore_errors: yes
 
 - hosts: client_group
   gather_facts: yes
@@ -74,6 +77,13 @@
       git:
         repo: https://github.com/giltene/wrk2.git
         dest: /tmp/wrk2
+      when: ansible_machine == 'x86_64'
+
+    - name: Install wrk2
+      git:
+        repo: https://github.com/AmpereTravis/wrk2-aarch64.git
+        dest: /tmp/wrk2
+      when: ansible_machine == 'aarch64'
 
     - name: Make wrk2
       make:
