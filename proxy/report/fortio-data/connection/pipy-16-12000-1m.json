@@ -1,0 +1,240 @@
+{
+  "RunType": "HTTP",
+  "Labels": "pipy-16-12000",
+  "StartTime": "2022-03-19T09:08:44.686490896Z",
+  "RequestedQPS": "12000",
+  "RequestedDuration": "1m0s",
+  "ActualQPS": 11999.592391645852,
+  "ActualDuration": 60002038111,
+  "NumThreads": 16,
+  "Version": "dev",
+  "DurationHistogram": {
+    "Count": 720000,
+    "Min": 0.000138168,
+    "Max": 0.005044396,
+    "Sum": 392.0710286589991,
+    "Avg": 0.000544543095359721,
+    "StdDev": 0.000269993396159398,
+    "Data": [
+      {
+        "Start": 0.000138168,
+        "End": 0.0002,
+        "Percent": 0.4022222222222222,
+        "Count": 2896
+      },
+      {
+        "Start": 0.0002,
+        "End": 0.00030000000000000003,
+        "Percent": 12.819444444444445,
+        "Count": 89404
+      },
+      {
+        "Start": 0.00030000000000000003,
+        "End": 0.0004,
+        "Percent": 37.57833333333333,
+        "Count": 178264
+      },
+      {
+        "Start": 0.0004,
+        "End": 0.0005,
+        "Percent": 57.18277777777778,
+        "Count": 141152
+      },
+      {
+        "Start": 0.0005,
+        "End": 0.0006000000000000001,
+        "Percent": 68.12125,
+        "Count": 78757
+      },
+      {
+        "Start": 0.0006000000000000001,
+        "End": 0.0007,
+        "Percent": 76.70680555555556,
+        "Count": 61816
+      },
+      {
+        "Start": 0.0007,
+        "End": 0.0008,
+        "Percent": 83.34944444444444,
+        "Count": 47827
+      },
+      {
+        "Start": 0.0008,
+        "End": 0.0009000000000000001,
+        "Percent": 88.56694444444445,
+        "Count": 37566
+      },
+      {
+        "Start": 0.0009000000000000001,
+        "End": 0.001,
+        "Percent": 92.40430555555555,
+        "Count": 27629
+      },
+      {
+        "Start": 0.001,
+        "End": 0.0011,
+        "Percent": 95.16944444444445,
+        "Count": 19909
+      },
+      {
+        "Start": 0.0011,
+        "End": 0.0012000000000000001,
+        "Percent": 97.1438888888889,
+        "Count": 14216
+      },
+      {
+        "Start": 0.0012000000000000001,
+        "End": 0.0014,
+        "Percent": 99.12555555555555,
+        "Count": 14268
+      },
+      {
+        "Start": 0.0014,
+        "End": 0.0016,
+        "Percent": 99.72875,
+        "Count": 4343
+      },
+      {
+        "Start": 0.0016,
+        "End": 0.0018000000000000002,
+        "Percent": 99.90180555555555,
+        "Count": 1246
+      },
+      {
+        "Start": 0.0018000000000000002,
+        "End": 0.002,
+        "Percent": 99.95041666666667,
+        "Count": 350
+      },
+      {
+        "Start": 0.002,
+        "End": 0.0025,
+        "Percent": 99.97541666666666,
+        "Count": 180
+      },
+      {
+        "Start": 0.0025,
+        "End": 0.003,
+        "Percent": 99.98625,
+        "Count": 78
+      },
+      {
+        "Start": 0.003,
+        "End": 0.0035,
+        "Percent": 99.99375,
+        "Count": 54
+      },
+      {
+        "Start": 0.0035,
+        "End": 0.004,
+        "Percent": 99.99625,
+        "Count": 18
+      },
+      {
+        "Start": 0.004,
+        "End": 0.0045000000000000005,
+        "Percent": 99.99972222222222,
+        "Count": 25
+      },
+      {
+        "Start": 0.0045000000000000005,
+        "End": 0.005,
+        "Percent": 99.99986111111112,
+        "Count": 1
+      },
+      {
+        "Start": 0.005,
+        "End": 0.005044396,
+        "Percent": 100,
+        "Count": 1
+      }
+    ],
+    "Percentiles": [
+      {
+        "Percentile": 50,
+        "Value": 0.0004633614826569939
+      },
+      {
+        "Percentile": 75,
+        "Value": 0.0006801200336482464
+      },
+      {
+        "Percentile": 90,
+        "Value": 0.0009373448188497594
+      },
+      {
+        "Percentile": 99,
+        "Value": 0.0013873282870759747
+      },
+      {
+        "Percentile": 99.9,
+        "Value": 0.0017979133226324311
+      }
+    ]
+  },
+  "Exactly": 0,
+  "Jitter": false,
+  "Uniform": false,
+  "RunID": 0,
+  "AccessLoggerInfo": "",
+  "RetCodes": {
+    "200": 720000
+  },
+  "URL": "http://172.31.16.178:38080",
+  "NumConnections": 1,
+  "Compression": false,
+  "DisableFastClient": false,
+  "HTTP10": false,
+  "DisableKeepAlive": false,
+  "AllowHalfClose": false,
+  "Insecure": false,
+  "FollowRedirects": false,
+  "CACert": "",
+  "Cert": "",
+  "Key": "",
+  "Resolve": "",
+  "HTTPReqTimeOut": 3000000000,
+  "UserCredentials": "",
+  "ContentType": "",
+  "Payload": "",
+  "UnixDomainSocket": "",
+  "LogErrors": true,
+  "ID": 0,
+  "SequentialWarmup": false,
+  "Sizes": {
+    "Count": 720000,
+    "Min": 202,
+    "Max": 202,
+    "Sum": 145440000,
+    "Avg": 202,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 202,
+        "End": 202,
+        "Percent": 100,
+        "Count": 720000
+      }
+    ],
+    "Percentiles": null
+  },
+  "HeaderSizes": {
+    "Count": 720000,
+    "Min": 186,
+    "Max": 186,
+    "Sum": 133920000,
+    "Avg": 186,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 186,
+        "End": 186,
+        "Percent": 100,
+        "Count": 720000
+      }
+    ],
+    "Percentiles": null
+  },
+  "SocketCount": 16,
+  "AbortOn": 0
+}
