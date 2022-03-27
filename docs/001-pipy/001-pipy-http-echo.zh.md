@@ -2,7 +2,7 @@
 使用Pipy在测试中提供Echo服务
 ------
 
-# 基准测试 ： Pipy作为Echo服务服务器
+# 基准测试 ： Pipy作为Echo服务器
 
 ## 背景概述
 
@@ -14,7 +14,7 @@
 ## 测试工具
 
 我们使用三种测试工具：
-We use three load test softwares as http client:
+
  * __ab__ (apache bench), ab用来测试HTTP短连接，也就是没有keep-alive的场景。`ab -c100 -n1000000 URL`
  * __wrk__ (https://github.com/wg/wrk), wrk用来测试HTTP长连接，也就是带有keep-alive的情况；同时wrk用来测试“极限状态（CPU100%使用）“下服务端的性能指标。 `wrk -c100 -t1 -n20 --latency URL`
  * __fortio__ (https://github.com/fortio/fortio), fortio用来测试在指定的qps下的延迟。 `fortio load -c 100 -n 1000000 --qps 10000 URL` 
@@ -57,7 +57,7 @@ We use three load test softwares as http client:
 
 除了“最大打开文件数”，我们没有修改别的内核参数；最大打开文件数我们设置为1024000。
 
-我们使用pipy的脚本是tutorial/02-echo/hello.js。这个脚本会监听3个端口，8081提供基本的hello world信息；8081提供回显服务；8082提供包含客户端IP地址的动态内容。
+我们使用pipy的脚本是tutorial/02-echo/hello.js。这个脚本会监听3个端口，8080提供基本的hello world信息；8081提供回显服务；8082提供包含客户端IP地址的动态内容。
 
 ## 测试案例清单
 
