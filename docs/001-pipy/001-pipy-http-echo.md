@@ -58,8 +58,6 @@ The script we use for pipy is `tutorial/02-echo/echo.js`. This script listens on
 
 ## Test Cases 
 
-So there is the test cases list (two platforms, 3 types of load tester, 3 types of servers. 2 x 3 x 3 = 18 test cases) :
-
 The following is the list of test cases,(two platforms, 3 types of load tester, 3 types of servers. 2 x 3 x 3 = 18 test cases):
 
  1. ubuntu21-arm64, ab test nginx
