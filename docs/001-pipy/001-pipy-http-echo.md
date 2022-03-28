@@ -1,65 +1,64 @@
 ---
-title: Pipy as HTTP Echo Server
+title: Benchmarking HTTP Echo Service
 ---
 
-# Benchmark : Pipy as HTTP Echo Server
+# Benchmarking HTTP Echo Service Performance
 
-## Background and context
+## Purpose of benchmarking
 
-When we want to test the performance of a proxy, we usually need a "backend service". It's also called "real server", "upstream", etc. There are many programs that provide this functionality, such as Nginx, which provides basic static pages; and hashicorp's http-echo(https://github.com/hashicorp/http-echo). The same functionality can be provided with very little PipyJS scripting, and with better customizability and even better performance.
+Our main goal here is to check if each tool under testing performs well enough under constraint resources. We ran a baseline performance testing against [nginx - open source](https://nginx.org/), [hashicorp http-echo](https://github.com/hashicorp/http-echo), and [Pipy](https://flomesh.io). We use a very basic output of "Hello World" and captured various performance-related metrics of these tools.
 
-In this article, we do baseline performance tests on several software programs: nginx, http-echo, and pipy, and we test various performance-related metrics on the output of the basic "Hello World" message from these three programs.
+## Benchmark platform and procedure
 
-## Load Test Tools
+To run these tests, we use same server and test cases to run each tool independently.
+### Load Test Tools
 
 We use three testing tools:
+
  * __ab__ (Apache Bench), ab is used to test HTTP short-lived connections, that is, one request each connection. `ab -c100 -n1000000 URL`
  * __wrk__ (https://github.com/wg/wrk), wrk is used to test long-lived HTTP connections, i.e. multiple request on each connection; wrk is also used to test the performance metrics of the server in the "extreme condition" (100% CPU usage). `wrk -c100 -t1 -n20 --latency URL`
  * __fortio__ (https://github.com/fortio/fortio), fortio is used to test the latency at the specified qps. `fortio load -c 100 -n 1000000 --qps 10000 URL` 
 
-We run the test tool and the server in the same virtual machine, communicating via 127.0.0.1, mainly to avoid the influence of the physical network on the results, because the subject of our test is only the "software".
+We run the test tool and the server in the same virtual machine, communicating via `127.0.0.1`, mainly to avoid the influence of the physical network on the results, because the subject of our test is only the "software".
 
 ## Hardware 
 
-We use a virtual machine with 2 VCPUs, one CPU running the test program and the other running the server-side software. Since all software can scale up almost linearly by adding CPUs or instances, we only test the performance baseline for the minimum configuration case.
+We used a virtual machine with 2 vcpus, one running the test program and the other running the server software. Because all software can be expanded almost linearly by adding cpus or instances, we only tested the baseline performance for minimal configurations.
 
 ## OS
 
-We did this test on two operating systems, one is Ubuntu 21 server edition and the other is FreeBSD13, both being the ARM editions. Each virtual machine was configured with 2C4G.
-
+We ran this test on two operating systems, `Ubuntu21 Server` and `FreeBSD13`, both of which were ARM versions. Each VM is configured with **2C4G**.
 ## Why FreeBSD
 
-We chose to do our testing on FreeBSD because we found that: when we want to provide a software load balancer, the overall cost (TCO) is better with FreeBSD (compared to Linux). In several of our test scenarios, FreeBSD such as Linux provided up to 30% better performance (latency, throughput rate).
-
+We chose to test on FreeBSD because we found that the total cost of ownership (TCO) of using FreeBSD was more advantageous (compared to Linux) when we wanted to provide a software load balancer. FreeBSD outperformed Linux up to 30% in performance (latency, throughput) in several of our test scenarios.
 ## About ARM64
 
-We chose the ARM64 platform for testing mainly because our junior partner's work machine is a Macbook M1, which is very easy to create and manage virtual machines using UTM(https://github.com/utmapp/UTM) software. Another reason is because we designed Pipy hoping it would run well in edge computing and IoT environments.
+We chose the ARM64 platform for testing mainly because our developers work machine is a Macbook M1. Another reason is because we designed Pipy hoping it would run well in edge computing and IoT environments.
 
-The low-end ARM64 servers also have a strong cost advantage. Our website, flomesh.io, is running on 10 2C0.5G aws ARM64 lightsail cloud hosts distributed around the world, providing access to North America, Europe, and Asia, using route53 as a smart DNS for proximity access. Low-end, or even ultra-low-end ARM64 cloud hosting coupled with FreeBSD is the lowest cost solution for static sites like ours (static content with some reverse proxy). Eat your own dog food ~
+The low-end ARM64 servers also have a strong cost advantage. Our website, [flomesh.io](https://flomesh.io), is running on 10 2C0.5G aws ARM64 lightsail cloud hosts distributed around the world, providing access to North America, Europe, and Asia, using route53 as a smart DNS for proximity access. Low-end, or even ultra-low-end ARM64 cloud hosting coupled with FreeBSD is the lowest cost solution for static sites like ours (static content with some reverse proxy). Yes we eat our down dog food ~
 
 ## Test Scope
 
-Our tests did not cover the following cases.
+We ran tests for below criteria:
 
- * Only HTTP GET was tested, not HTTP POST
+ * Only `HTTP GET` was tested
  * Only tested the case where the return content contains very few characters (hello world)
- * Did not test the mixed load case, where all requests are the same
- * Only tested data in case of 100 concurrency, in most testing software the number of concurrency is specified by the '-c' parameter
- * For the extreme stress test, we only tested 20 seconds; for the fixed qps test, we only tested data with 1 million requests at 10,000 qps
+ * Data is tested only at 100 concurrent sessions. In most testing software, the number of concurrent sessions is specified by the `-c` parameter
+ * For extreme stress tests, we ran tests for 20 seconds; For fixed QPS tests, we only tested data for 1 million requests at 10,000 QPS
  
 ## Software version and configration
 
- * nginx and wrk and ab, which we install using the system package manager, i.e. pkg and apt-get
- * http-echo and pipy and fortio are compiled from source code
- * Nginx we configured 1 worker, and turned off access logging and error logging (to avoid disk operations affecting performance)
+ * nginx, wrk, and ab, were installed using system package managers like `pkg` and `apt-get`
+ * `http-echo`, `pipy`, and `fortio` were compiled from source code
+ * Nginx was configured with 1 worker, and turned off access and error logging (to avoid disk operations affecting performance)
  
-We did not change any kernel parameters except for the "maximum open files"; we set the maximum open files to 1024000.
+We did not change any kernel parameters other than **Max open files**; We set the maximum number of open files to **1024000**.
 
-The script we use for pipy is tutorial/02-echo/echo.js. This script listens on 3 ports, 8080 for basic hello world information, 8081 for echo service, and 8082 for dynamic content with the client's IP address.
+The script we use for pipy is `tutorial/02-echo/echo.js`. This script listens on 3 ports, 8080 for basic hello world information, 8081 for echo service, and 8082 for dynamic content with the client's IP address.
 
-## Test Cases List 
+## Test Cases 
 
-So there is the test cases list (two platforms, 3 types of load tester, 3 types of servers. 2 x 3 x 3 = 18 test cases) :
+The following is the list of test cases,(two platforms, 3 types of load tester, 3 types of servers. 2 x 3 x 3 = 18 test cases):
 
  1. ubuntu21-arm64, ab test nginx
  2. ubuntu21-arm64, ab test http-echo
@@ -82,26 +81,33 @@ So there is the test cases list (two platforms, 3 types of load tester, 3 types 
 
 ## Test Report
 
-Major indicators we recorded are qps and latency, together with cpu and memory usage. We use 'top' to roughtly record mem and cpu. Put all key result into this table:
+We focus on four main metrics: `Throughput QPS`, `Latency`, `CPU usage`, and `memory usage`. For CPU and memory usage, we simply observed and record using the `top` command. The test data are summarized in the following table:
 
- * ab has no latency data
- * wrk has no latency data for P99.9
+ * `ab` does not provide latency data
+ * `wrk` has no latency data for P99.9
 
- | Test Case #| OS           | Tester | Upstream Server | QPS    | Latency P50 | P90/P50  | P99/P50  | P99.9/P50 | Mem(RES) | CPU |
- |------------|--------------|--------|-----------------|--------|-------------|----------|----------|-----------|----------|-----|
- | 1          |ubuntu21-arm64| ab     | nginx           | 60824  |             |          |          |           |      6.5M|  91%|
- | 2          |ubuntu21-arm64| ab     | http-echo       | 44826  |             |          |          |           |     11.9M| 106%|
- | 3          |ubuntu21-arm64| ab     | pipy            | 59698  |             |          |          |           |      9.3M|  94%|
- | 4          |ubuntu21-arm64| wrk    | nginx           | 82759  |    1.20ms   |    112.5%|      185%|           |      6.5M| 100%|
- | 5          |ubuntu21-arm64| wrk    | http-echo       | 94579  |    0.94ms   |    396.8%|     1023%|           |     12.7M| 107%|
- | 6          |ubuntu21-arm64| wrk    | pipy            |218539  |   0.445ms   |    111.9%|      137%|           |      9.3M| 100%|
- | 7          |ubuntu21-arm64| fortio | nginx           |        |   1.449ms   |    238.5%|    334.7%|     535.7%|      6.5M|  29%|
- | 8          |ubuntu21-arm64| fprtio | http-echo       |        |   0.633ms   |    240.1%|    311.6%|     471.9%|     11.4M|  15%|
- | 9          |ubuntu21-arm64| fortio | pipy            |        |   1.851ms   |    189.7%|    269.1%|     414.2%|      9.6M|  33%|
+ | Test Case #| OS            | Testing Tool | Upstream Server |  qps | Latency P50 | P90/P50  | P99/P50  | P99.9/P50 | Mem(RES) | CPU |
+ |------------|---------------|--------|-----------------|------|-------------|----------|----------|-----------|----------|-----|
+ | 1          |ubuntu21-arm64 | ab     | nginx           | 60824|             |          |          |           |      6.5M|  91%|
+ | 2          |ubuntu21-arm64 | ab     | http-echo       | 44826|             |          |          |           |     11.9M| 106%|
+ | 3          |ubuntu21-arm64 | ab     | pipy            | 59698|             |          |          |           |      9.3M|  94%|
+ | 4          |ubuntu21-arm64 | wrk    | nginx           | 82759|    1.20ms   |    112.5%|      185%|           |      6.5M| 100%|
+ | 5          |ubuntu21-arm64 | wrk    | http-echo       | 94579|    0.94ms   |    396.8%|     1023%|           |     12.7M| 107%|
+ | 6          |ubuntu21-arm64 | wrk    | pipy            |218539|    0.45ms   |    111.9%|      137%|           |      9.3M| 100%|
+ | 7          |ubuntu21-arm64 | fortio | nginx           |      |   1.449ms   |    238.5%|    334.7%|     535.7%|      6.5M|  29%|
+ | 8          |ubuntu21-arm64 | fprtio | http-echo       |      |   0.633ms   |    240.1%|    311.6%|     471.9%|     11.4M|  15%|
+ | 9          |ubuntu21-arm64 | fortio | pipy            |      |   1.851ms   |    189.7%|    269.1%|     414.2%|      9.6M|  33%|
+ | 10         |freebsd13-arm64| ab     | nginx           | 93680|             |          |          |           |      7.5M|  59%|
+ | 11         |freebsd13-arm64| ab     | http-echo       | 61230|             |          |          |           |       13M| 106%|
+ | 12         |freebsd13-arm64| ab     | pipy            | 95074|             |          |          |           |      8.1M|  73%|
+ | 13         |freebsd13-arm64| wrk    | nginx           |204544|     485us   |      104%|      123%|           |      7.5M|  89%|
+ | 14         |freebsd13-arm64| wrk    | http-echo       |134889|     645us   |      142%|      213%|           |       13M| 136%|
+ | 15         |freebsd13-arm64| wrk    | pipy            |281176|     350us   |      108%|      122%|           |      9.5M|  85%|
+ | 16         |freebsd13-arm64| fortio | nginx           |      |     507us   |      178%|      195%|     356.4%|      6.5M| 5.5%|
+ | 17         |freebsd13-arm64| fprtio | http-echo       |      |     527us   |      178%|      336%|     378.7%|       13M|  11%|
+ | 18         |freebsd13-arm64| fortio | pipy            |      |     506us   |      178%|    195.8%|     342.9%|      9.5M| 3.7%|
  
 # Appendix : Test Records
-
-Detail test result : 
 
 ## 1. ubuntu21-arm64, ab test nginx
 
@@ -765,18 +771,647 @@ All done 1000000 calls (plus 0 warmup) 1.984 ms avg, 9998.3 qps
 
 ## 10. freebsd13-arm64, ab test nginx
 
+~~~~bash
+root@freebsd13-aa64:~ # ab -c100 -n1000000 http://127.0.0.1:80/
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 100000 requests
+Completed 200000 requests
+Completed 300000 requests
+Completed 400000 requests
+Completed 500000 requests
+Completed 600000 requests
+Completed 700000 requests
+Completed 800000 requests
+Completed 900000 requests
+Completed 1000000 requests
+Finished 1000000 requests
+
+
+Server Software:        nginx/1.20.2
+Server Hostname:        127.0.0.1
+Server Port:            80
+
+Document Path:          /
+Document Length:        11 bytes
+
+Concurrency Level:      100
+Time taken for tests:   10.675 seconds
+Complete requests:      1000000
+Failed requests:        0
+Total transferred:      241000000 bytes
+HTML transferred:       11000000 bytes
+Requests per second:    93680.20 [#/sec] (mean)
+Time per request:       1.067 [ms] (mean)
+Time per request:       0.011 [ms] (mean, across all concurrent requests)
+Transfer rate:          22047.78 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.0      0       1
+Processing:     0    1   0.2      1      11
+Waiting:        0    1   0.2      1      11
+Total:          0    1   0.2      1      11
+
+Percentage of the requests served within a certain time (ms)
+  50%      1
+  66%      1
+  75%      1
+  80%      1
+  90%      1
+  95%      1
+  98%      1
+  99%      2
+ 100%     11 (longest request)
+~~~~
+
 ## 11. freebsd13-arm64, ab test http-echo
+
+~~~~bash
+root@freebsd13-aa64:~ # ab -c100 -n1000000 http://127.0.0.1:9090/
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 100000 requests
+Completed 200000 requests
+Completed 300000 requests
+Completed 400000 requests
+Completed 500000 requests
+Completed 600000 requests
+Completed 700000 requests
+Completed 800000 requests
+Completed 900000 requests
+Completed 1000000 requests
+Finished 1000000 requests
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            9090
+
+Document Path:          /
+Document Length:        9 bytes
+
+Concurrency Level:      100
+Time taken for tests:   16.332 seconds
+Complete requests:      1000000
+Failed requests:        0
+Total transferred:      161000000 bytes
+HTML transferred:       9000000 bytes
+Requests per second:    61230.92 [#/sec] (mean)
+Time per request:       1.633 [ms] (mean)
+Time per request:       0.016 [ms] (mean, across all concurrent requests)
+Transfer rate:          9627.13 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.3      0      11
+Processing:     0    1   0.6      1      19
+Waiting:        0    1   0.5      1      18
+Total:          0    2   0.7      2      19
+
+Percentage of the requests served within a certain time (ms)
+  50%      2
+  66%      2
+  75%      2
+  80%      2
+  90%      2
+  95%      3
+  98%      3
+  99%      3
+ 100%     19 (longest request)
+~~~~
 
 ## 12. freebsd13-arm64, ab test pipy
 
+~~~~bash
+root@freebsd13-aa64:~ # ab -c100 -n1000000 http://127.0.0.1:8081/
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient)
+Completed 100000 requests
+Completed 200000 requests
+Completed 300000 requests
+Completed 400000 requests
+Completed 500000 requests
+Completed 600000 requests
+Completed 700000 requests
+Completed 800000 requests
+Completed 900000 requests
+Completed 1000000 requests
+Finished 1000000 requests
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            8081
+
+Document Path:          /
+Document Length:        0 bytes
+
+Concurrency Level:      100
+Time taken for tests:   10.518 seconds
+Complete requests:      1000000
+Failed requests:        0
+Total transferred:      57000000 bytes
+HTML transferred:       0 bytes
+Requests per second:    95074.65 [#/sec] (mean)
+Time per request:       1.052 [ms] (mean)
+Time per request:       0.011 [ms] (mean, across all concurrent requests)
+Transfer rate:          5292.24 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.0      0      10
+Processing:     0    1   0.3      1      11
+Waiting:        0    1   0.3      1      11
+Total:          0    1   0.3      1      11
+
+Percentage of the requests served within a certain time (ms)
+  50%      1
+  66%      1
+  75%      1
+  80%      1
+  90%      1
+  95%      1
+  98%      1
+  99%      2
+ 100%     11 (longest request)
+~~~~
+
 ## 13. freebsd13-arm64, wrk test nginx
+
+~~~~bash
+root@freebsd13-aa64:~ # wrk -c100 -t1 -d20 --latency http://127.0.0.1:80/
+Running 20s test @ http://127.0.0.1:80/
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   487.68us   41.93us   1.92ms   96.12%
+    Req/Sec   205.47k     1.65k  210.33k    68.66%
+  Latency Distribution
+     50%  485.00us
+     75%  495.00us
+     90%  506.00us
+     99%  598.00us
+  4111530 requests in 20.10s, 0.94GB read
+Requests/sec: 204544.67
+Transfer/sec:     47.99MB
+~~~~
 
 ## 14. freebsd13-arm64, wrk test http-echo
 
+~~~~bash
+root@freebsd13-aa64:~ # wrk -c100 -t1 -d20 --latency http://127.0.0.1:9090/
+Running 20s test @ http://127.0.0.1:9090/
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   606.09us  303.38us   6.91ms   68.30%
+    Req/Sec   135.66k    11.16k  175.08k    84.00%
+  Latency Distribution
+     50%  645.00us
+     75%  778.00us
+     90%    0.92ms
+     99%    1.38ms
+  2698301 requests in 20.00s, 414.30MB read
+Requests/sec: 134889.80
+Transfer/sec:     20.71MB
+~~~~
+
 ## 15. freebsd13-arm64, wrk test pipy
+
+~~~~bash
+root@freebsd13-aa64:~ # wrk -c100 -t1 -d20 --latency http://127.0.0.1:8081/
+Running 20s test @ http://127.0.0.1:8081/
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   352.92us   29.64us   1.98ms   91.79%
+    Req/Sec   282.64k     3.14k  289.16k    65.17%
+  Latency Distribution
+     50%  350.00us
+     75%  364.00us
+     90%  377.00us
+     99%  427.00us
+  5652112 requests in 20.10s, 334.20MB read
+Requests/sec: 281176.51
+Transfer/sec:     16.63MB
+~~~~
 
 ## 16. freebsd13-arm64, fortio test nginx
 
+~~~~bash
+root@freebsd13-aa64:~ # fortio load -c 100 -n 1000000 -qps 10000 http://127.0.0.1:80/ 
+Fortio dev running at 10000 queries per second, 2->2 procs, for 1000000 calls: http://127.0.0.1:80/
+15:34:31 I httprunner.go:87> Starting http test for http://127.0.0.1:80/ with 100 threads at 10000.0 qps and parallel warmup
+Starting at 10000 qps with 100 thread(s) [gomax 2] : exactly 1000000, 10000 calls each (total 1000000 + 0)
+15:34:41 I http_client.go:778> Closing dead socket &{{0x40000d6780}} (err read tcp 127.0.0.1:53341->127.0.0.1:80: read: connection reset by peer at first read)
+15:34:41 I http_client.go:778> Closing dead socket &{{0x40000d7500}} (err read tcp 127.0.0.1:16010->127.0.0.1:80: read: connection reset by peer at first read)
+15:34:41 I http_client.go:778> Closing dead socket &{{0x40000d6500}} (err EOF at first read)
+15:34:41 I http_client.go:778> Closing dead socket &{{0x4000201580}} (err read tcp 127.0.0.1:13350->127.0.0.1:80: read: connection reset by peer at first read)
+15:34:41 I http_client.go:778> Closing dead socket &{{0x4000258880}} (err EOF at first read)
+......
+15:36:11 I periodic.go:693> T015 ended after 1m40.0006695s : 10000 calls. qps=99.99933050448227
+15:36:11 I periodic.go:693> T012 ended after 1m40.000726s : 10000 calls. qps=99.99927400527072
+15:36:11 I periodic.go:693> T074 ended after 1m40.000731875s : 10000 calls. qps=99.99926813035637
+15:36:11 I periodic.go:693> T039 ended after 1m40.000737167s : 10000 calls. qps=99.99926283843412
+15:36:11 I periodic.go:693> T005 ended after 1m40.00074275s : 10000 calls. qps=99.99925725551674
+15:36:11 I periodic.go:693> T041 ended after 1m40.000746792s : 10000 calls. qps=99.99925321357694
+15:36:11 I periodic.go:693> T025 ended after 1m40.0007525s : 10000 calls. qps=99.99924750566251
+15:36:11 I periodic.go:693> T078 ended after 1m40.000770291s : 10000 calls. qps=99.99922971493343
+15:36:11 I periodic.go:693> T069 ended after 1m40.000775708s : 10000 calls. qps=99.99922429801718
+15:36:11 I periodic.go:693> T009 ended after 1m40.000781125s : 10000 calls. qps=99.99921888110151
+15:36:11 I periodic.go:693> T072 ended after 1m40.000784875s : 10000 calls. qps=99.99921513116024
+15:36:11 I periodic.go:693> T014 ended after 1m40.000789583s : 10000 calls. qps=99.99921042323436
+15:36:11 I periodic.go:693> T021 ended after 1m40.000795s : 10000 calls. qps=99.99920500632021
+15:36:11 I periodic.go:693> T097 ended after 1m40.000974791s : 10000 calls. qps=99.99902521850208
+15:36:11 I periodic.go:693> T098 ended after 1m40.000990375s : 10000 calls. qps=99.99900963480833
+15:36:11 I periodic.go:693> T055 ended after 1m40.000994625s : 10000 calls. qps=99.99900538489268
+15:36:11 I periodic.go:693> T073 ended after 1m40.000998708s : 10000 calls. qps=99.99900130197408
+15:36:11 I periodic.go:693> T046 ended after 1m40.001002875s : 10000 calls. qps=99.99899713505748
+15:36:11 I periodic.go:693> T054 ended after 1m40.001006708s : 10000 calls. qps=99.99899330213451
+15:36:11 I periodic.go:693> T011 ended after 1m40.001010875s : 10000 calls. qps=99.99898913521858
+15:36:11 I periodic.go:693> T085 ended after 1m40.001015167s : 10000 calls. qps=99.99898484330554
+15:36:11 I periodic.go:693> T077 ended after 1m40.001019166s : 10000 calls. qps=99.99898084438688
+15:36:11 I periodic.go:693> T095 ended after 1m40.001022792s : 10000 calls. qps=99.99897721846092
+15:36:11 I periodic.go:693> T017 ended after 1m40.001027417s : 10000 calls. qps=99.99897259355575
+15:36:11 I periodic.go:693> T058 ended after 1m40.001031958s : 10000 calls. qps=99.99896805264926
+15:36:11 I periodic.go:693> T056 ended after 1m40.001035833s : 10000 calls. qps=99.99896417772939
+15:36:11 I periodic.go:693> T004 ended after 1m40.001039625s : 10000 calls. qps=99.99896038580809
+15:36:11 I periodic.go:693> T007 ended after 1m40.001043416s : 10000 calls. qps=99.99895659488705
+15:36:11 I periodic.go:693> T067 ended after 1m40.0010475s : 10000 calls. qps=99.99895251097244
+15:36:11 I periodic.go:693> T082 ended after 1m40.00105175s : 10000 calls. qps=99.99894826106166
+15:36:11 I periodic.go:693> T070 ended after 1m40.001056292s : 10000 calls. qps=99.99894371915741
+15:36:11 I periodic.go:693> T048 ended after 1m40.001060708s : 10000 calls. qps=99.99893930325089
+15:36:11 I periodic.go:693> T032 ended after 1m40.001064458s : 10000 calls. qps=99.99893555333058
+15:36:11 I periodic.go:693> T061 ended after 1m40.001068708s : 10000 calls. qps=99.99893130342124
+15:36:11 I periodic.go:693> T068 ended after 1m40.001446792s : 10000 calls. qps=99.99855322893177
+15:36:11 I periodic.go:693> T006 ended after 1m40.001451875s : 10000 calls. qps=99.9985481460791
+15:36:11 I periodic.go:693> T049 ended after 1m40.001073s : 10000 calls. qps=99.99892701151316
+15:36:11 I periodic.go:693> T018 ended after 1m40.001459708s : 10000 calls. qps=99.99854031330716
+15:36:11 I periodic.go:693> T028 ended after 1m40.0010975s : 10000 calls. qps=99.99890251204494
+15:36:11 I periodic.go:693> T023 ended after 1m40.001130292s : 10000 calls. qps=99.99886972077546
+15:36:11 I periodic.go:693> T047 ended after 1m40.001142042s : 10000 calls. qps=99.99885797104245
+15:36:11 I periodic.go:693> T050 ended after 1m40.001154208s : 10000 calls. qps=99.9988458053218
+15:36:11 I periodic.go:693> T052 ended after 1m40.001464s : 10000 calls. qps=99.99853602143264
+15:36:11 I periodic.go:693> T060 ended after 1m40.001166167s : 10000 calls. qps=99.9988338465993
+15:36:11 I periodic.go:693> T022 ended after 1m40.001178041s : 10000 calls. qps=99.99882197287764
+15:36:11 I periodic.go:693> T086 ended after 1m40.001189875s : 10000 calls. qps=99.99881013915787
+15:36:11 I periodic.go:693> T044 ended after 1m40.001202542s : 10000 calls. qps=99.9987974724609
+15:36:11 I periodic.go:693> T042 ended after 1m40.001214208s : 10000 calls. qps=99.99878580674284
+15:36:11 I periodic.go:693> T079 ended after 1m40.001225625s : 10000 calls. qps=99.99877439002138
+15:36:11 I periodic.go:693> T099 ended after 1m40.0012375s : 10000 calls. qps=99.99876251531387
+15:36:11 I periodic.go:693> T001 ended after 1m40.001249458s : 10000 calls. qps=99.99875055761126
+15:36:11 I periodic.go:693> T019 ended after 1m40.001261458s : 10000 calls. qps=99.99873855791256
+15:36:11 I periodic.go:693> T075 ended after 1m40.0012735s : 10000 calls. qps=99.99872651621781
+15:36:11 I periodic.go:693> T031 ended after 1m40.001285708s : 10000 calls. qps=99.99871430853024
+15:36:11 I periodic.go:693> T051 ended after 1m40.001297875s : 10000 calls. qps=99.99870214184457
+15:36:11 I periodic.go:693> T037 ended after 1m40.001488583s : 10000 calls. qps=99.99851143915846
+15:36:11 I periodic.go:693> T026 ended after 1m40.001301542s : 10000 calls. qps=99.9986984749399
+15:36:11 I periodic.go:693> T096 ended after 1m40.001318458s : 10000 calls. qps=99.99868155938309
+15:36:11 I periodic.go:693> T064 ended after 1m40.001322416s : 10000 calls. qps=99.99867760148761
+15:36:11 I periodic.go:693> T003 ended after 1m40.001326125s : 10000 calls. qps=99.99867389258584
+15:36:11 I periodic.go:693> T084 ended after 1m40.001352083s : 10000 calls. qps=99.99864793528104
+15:36:11 I periodic.go:693> T094 ended after 1m40.001363083s : 10000 calls. qps=99.9986369355797
+15:36:11 I periodic.go:693> T062 ended after 1m40.001375708s : 10000 calls. qps=99.99862431092546
+15:36:11 I periodic.go:693> T010 ended after 1m40.001386833s : 10000 calls. qps=99.99861318623279
+15:36:11 I periodic.go:693> T059 ended after 1m40.001399042s : 10000 calls. qps=99.9986009775729
+15:36:11 I periodic.go:693> T053 ended after 1m40.001418417s : 10000 calls. qps=99.99858160311878
+15:36:11 I periodic.go:693> T066 ended after 1m40.001429208s : 10000 calls. qps=99.99857081242605
+15:36:11 I periodic.go:693> T089 ended after 1m40.001432542s : 10000 calls. qps=99.99856747852147
+15:36:11 I periodic.go:693> T080 ended after 1m40.001436083s : 10000 calls. qps=99.99856393762305
+15:36:11 I periodic.go:693> T020 ended after 1m40.001439125s : 10000 calls. qps=99.99856089571051
+15:36:11 I periodic.go:693> T027 ended after 1m40.001442375s : 10000 calls. qps=99.99855764580415
+15:36:11 I periodic.go:693> T040 ended after 1m40.001455833s : 10000 calls. qps=99.99854418819419
+15:36:11 I periodic.go:693> T043 ended after 1m40.001110458s : 10000 calls. qps=99.99888955433103
+15:36:11 I periodic.go:693> T016 ended after 1m40.001469s : 10000 calls. qps=99.9985310215793
+15:36:11 I periodic.go:693> T091 ended after 1m40.001477917s : 10000 calls. qps=99.99852210484207
+15:36:11 I periodic.go:693> T034 ended after 1m40.001482375s : 10000 calls. qps=99.99851764697404
+15:36:11 I periodic.go:693> T013 ended after 1m40.001588167s : 10000 calls. qps=99.99841185822235
+15:36:11 I periodic.go:693> T088 ended after 1m40.00159675s : 10000 calls. qps=99.99840327549569
+15:36:11 I periodic.go:693> T081 ended after 1m40.0016015s : 10000 calls. qps=99.9983985256476
+15:36:11 I periodic.go:693> T000 ended after 1m40.001606458s : 10000 calls. qps=99.99839356780666
+15:36:11 I periodic.go:693> T092 ended after 1m40.001610833s : 10000 calls. qps=99.99838919294741
+15:36:11 I periodic.go:693> T038 ended after 1m40.001614833s : 10000 calls. qps=99.99838519307643
+15:36:11 I periodic.go:693> T045 ended after 1m40.001619s : 10000 calls. qps=99.99838102621118
+15:36:11 I periodic.go:693> T063 ended after 1m40.001623167s : 10000 calls. qps=99.99837685934628
+15:36:11 I periodic.go:693> T002 ended after 1m40.001627416s : 10000 calls. qps=99.9983726104844
+15:36:11 I periodic.go:693> T087 ended after 1m40.001652375s : 10000 calls. qps=99.99834765230297
+15:36:11 I periodic.go:693> T029 ended after 1m40.001657416s : 10000 calls. qps=99.99834261146982
+15:36:11 I periodic.go:693> T035 ended after 1m40.001661792s : 10000 calls. qps=99.99833823561508
+15:36:11 I periodic.go:693> T057 ended after 1m40.001672167s : 10000 calls. qps=99.99832786096096
+15:36:11 I periodic.go:693> T083 ended after 1m40.001676917s : 10000 calls. qps=99.99832311112004
+15:36:11 I periodic.go:693> T033 ended after 1m40.001681042s : 10000 calls. qps=99.99831898625854
+15:36:11 I periodic.go:693> T036 ended after 1m40.001685083s : 10000 calls. qps=99.99831494539457
+15:36:11 I periodic.go:693> T071 ended after 1m40.001689s : 10000 calls. qps=99.99831102852673
+15:36:11 I periodic.go:693> T030 ended after 1m40.001693542s : 10000 calls. qps=99.99830648668036
+15:36:11 I periodic.go:693> T090 ended after 1m40.0017385s : 10000 calls. qps=99.99826153022329
+15:36:11 I periodic.go:693> T065 ended after 1m40.001744416s : 10000 calls. qps=99.99825561442935
+15:36:11 I periodic.go:693> T093 ended after 1m40.001748625s : 10000 calls. qps=99.99825140557635
+15:36:11 I periodic.go:693> T008 ended after 1m40.001752792s : 10000 calls. qps=99.99824723872226
+15:36:11 I periodic.go:693> T024 ended after 1m40.001757041s : 10000 calls. qps=99.99824298987139
+15:36:11 I periodic.go:693> T076 ended after 1m40.0014925s : 10000 calls. qps=99.99850752227523
+Ended after 1m40.001788208s : 1000000 calls. qps=9999.8
+Sleep times : count 999900 avg 0.0091517963 +/- 0.000293 min 0.001929521 max 0.009965707 sum 9150.88108
+Aggregated Function Time : count 1000000 avg 0.00036542271 +/- 0.0001783 min 1.1334e-05 max 0.007371417 sum 365.422709
+# range, mid point, percentile, count
+>= 1.1334e-05 <= 0.001 , 0.000505667 , 99.72, 997223
+> 0.001 <= 0.002 , 0.0015 , 99.94, 2201
+> 0.002 <= 0.003 , 0.0025 , 99.97, 326
+> 0.003 <= 0.004 , 0.0035 , 99.98, 91
+> 0.004 <= 0.005 , 0.0045 , 99.99, 25
+> 0.005 <= 0.006 , 0.0055 , 99.99, 30
+> 0.006 <= 0.007 , 0.0065 , 99.99, 19
+> 0.007 <= 0.00737142 , 0.00718571 , 100.00, 85
+# target 50% 0.000507043
+# target 75% 0.000754898
+# target 90% 0.000903611
+# target 99% 0.000992839
+# target 99.9% 0.00180736
+Sockets used: 1000 (for perfect keepalive, would be 100)
+Jitter: false
+Uniform: false
+Code 200 : 1000000 (100.0 %)
+Response Header Sizes : count 1000000 avg 234.995 +/- 0.158 min 230 max 235 sum 234995000
+Response Body/Total Sizes : count 1000000 avg 245.995 +/- 0.158 min 241 max 246 sum 245995000
+All done 1000000 calls (plus 0 warmup) 0.365 ms avg, 9999.8 qps
+~~~~
+
 ## 17. freebsd13-arm64, fortio test http-echo
 
+~~~~bash
+root@freebsd13-aa64:~ # fortio load -c 100 -n 1000000 -qps 10000 http://127.0.0.1:9090/
+Fortio dev running at 10000 queries per second, 2->2 procs, for 1000000 calls: http://127.0.0.1:9090/
+15:43:55 I httprunner.go:87> Starting http test for http://127.0.0.1:9090/ with 100 threads at 10000.0 qps and parallel warmup
+Starting at 10000 qps with 100 thread(s) [gomax 2] : exactly 1000000, 10000 calls each (total 1000000 + 0)
+15:45:35 I periodic.go:693> T070 ended after 1m40.001176708s : 10000 calls. qps=99.99882330584626
+15:45:35 I periodic.go:693> T091 ended after 1m40.00114675s : 10000 calls. qps=99.9988532631502
+15:45:35 I periodic.go:693> T095 ended after 1m40.001153542s : 10000 calls. qps=99.99884647130644
+15:45:35 I periodic.go:693> T079 ended after 1m40.001200542s : 10000 calls. qps=99.99879947241283
+15:45:35 I periodic.go:693> T039 ended after 1m40.001207042s : 10000 calls. qps=99.99879297256932
+15:45:35 I periodic.go:693> T080 ended after 1m40.00121175s : 10000 calls. qps=99.99878826468321
+15:45:35 I periodic.go:693> T058 ended after 1m40.001212333s : 10000 calls. qps=99.99878768169734
+15:45:35 I periodic.go:693> T006 ended after 1m40.001217167s : 10000 calls. qps=99.99878284781478
+15:45:35 I periodic.go:693> T021 ended after 1m40.001217834s : 10000 calls. qps=99.99878218083101
+15:45:35 I periodic.go:693> T013 ended after 1m40.001221625s : 10000 calls. qps=99.9987783899235
+15:45:35 I periodic.go:693> T082 ended after 1m40.001226417s : 10000 calls. qps=99.9987735980408
+15:45:35 I periodic.go:693> T002 ended after 1m40.001226958s : 10000 calls. qps=99.99877305705407
+15:45:35 I periodic.go:693> T063 ended after 1m40.001231625s : 10000 calls. qps=99.9987683901688
+15:45:35 I periodic.go:693> T042 ended after 1m40.001231958s : 10000 calls. qps=99.99876805717702
+15:45:35 I periodic.go:693> T083 ended after 1m40.00123575s : 10000 calls. qps=99.99876426527058
+15:45:35 I periodic.go:693> T000 ended after 1m40.001237833s : 10000 calls. qps=99.99876218232211
+15:45:35 I periodic.go:693> T098 ended after 1m40.00124275s : 10000 calls. qps=99.99875726544408
+15:45:35 I periodic.go:693> T036 ended after 1m40.001242708s : 10000 calls. qps=99.99875730744303
+15:45:35 I periodic.go:693> T037 ended after 1m40.0012465s : 10000 calls. qps=99.99875351553743
+15:45:35 I periodic.go:693> T031 ended after 1m40.001248875s : 10000 calls. qps=99.9987511405967
+15:45:35 I periodic.go:693> T090 ended after 1m40.001250917s : 10000 calls. qps=99.99874909864775
+15:45:35 I periodic.go:693> T069 ended after 1m40.001253584s : 10000 calls. qps=99.99874643171454
+15:45:35 I periodic.go:693> T056 ended after 1m40.001257375s : 10000 calls. qps=99.99874264080972
+15:45:35 I periodic.go:693> T046 ended after 1m40.0012615s : 10000 calls. qps=99.99873851591363
+15:45:35 I periodic.go:693> T093 ended after 1m40.001265542s : 10000 calls. qps=99.99873447401576
+15:45:35 I periodic.go:693> T092 ended after 1m40.001385833s : 10000 calls. qps=99.99861418620506
+15:45:35 I periodic.go:693> T001 ended after 1m40.001269s : 10000 calls. qps=99.9987310161034
+15:45:35 I periodic.go:693> T032 ended after 1m40.001272917s : 10000 calls. qps=99.99872709920298
+15:45:35 I periodic.go:693> T061 ended after 1m40.001276667s : 10000 calls. qps=99.99872334929857
+15:45:35 I periodic.go:693> T086 ended after 1m40.00128025s : 10000 calls. qps=99.9987197663902
+15:45:35 I periodic.go:693> T065 ended after 1m40.001283917s : 10000 calls. qps=99.99871609948423
+15:45:35 I periodic.go:693> T005 ended after 1m40.001287667s : 10000 calls. qps=99.99871234958064
+15:45:35 I periodic.go:693> T014 ended after 1m40.00139025s : 10000 calls. qps=99.99860976932769
+15:45:35 I periodic.go:693> T007 ended after 1m40.001291292s : 10000 calls. qps=99.99870872467413
+15:45:35 I periodic.go:693> T097 ended after 1m40.001295292s : 10000 calls. qps=99.9987047247776
+15:45:35 I periodic.go:693> T068 ended after 1m40.001304583s : 10000 calls. qps=99.99869543401914
+15:45:35 I periodic.go:693> T028 ended after 1m40.001309s : 10000 calls. qps=99.99869101713458
+15:45:35 I periodic.go:693> T074 ended after 1m40.001396292s : 10000 calls. qps=99.99860372749605
+15:45:35 I periodic.go:693> T059 ended after 1m40.001314042s : 10000 calls. qps=99.99868597526684
+15:45:35 I periodic.go:693> T089 ended after 1m40.001317709s : 10000 calls. qps=99.99868230836334
+15:45:35 I periodic.go:693> T010 ended after 1m40.001322208s : 10000 calls. qps=99.9986778094821
+15:45:35 I periodic.go:693> T029 ended after 1m40.001325917s : 10000 calls. qps=99.99867410058032
+15:45:35 I periodic.go:693> T043 ended after 1m40.001330125s : 10000 calls. qps=99.99866989269209
+15:45:35 I periodic.go:693> T034 ended after 1m40.001468s : 10000 calls. qps=99.99853202154992
+15:45:35 I periodic.go:693> T062 ended after 1m40.001333792s : 10000 calls. qps=99.99866622578978
+15:45:35 I periodic.go:693> T073 ended after 1m40.001337959s : 10000 calls. qps=99.9986620589011
+15:45:35 I periodic.go:693> T025 ended after 1m40.001342s : 10000 calls. qps=99.99865801800941
+15:45:35 I periodic.go:693> T030 ended after 1m40.001350584s : 10000 calls. qps=99.99864943424053
+15:45:35 I periodic.go:693> T076 ended after 1m40.00135525s : 10000 calls. qps=99.99864476836677
+15:45:35 I periodic.go:693> T019 ended after 1m40.00136025s : 10000 calls. qps=99.99863976850254
+15:45:35 I periodic.go:693> T054 ended after 1m40.001371s : 10000 calls. qps=99.99862901879615
+15:45:35 I periodic.go:693> T045 ended after 1m40.001374875s : 10000 calls. qps=99.99862514390256
+15:45:35 I periodic.go:693> T016 ended after 1m40.001378625s : 10000 calls. qps=99.99862139400581
+15:45:35 I periodic.go:693> T087 ended after 1m40.001382292s : 10000 calls. qps=99.99861772710705
+15:45:35 I periodic.go:693> T088 ended after 1m40.001400375s : 10000 calls. qps=99.99859964461022
+15:45:35 I periodic.go:693> T011 ended after 1m40.001478667s : 10000 calls. qps=99.99852135486424
+15:45:35 I periodic.go:693> T085 ended after 1m40.001404625s : 10000 calls. qps=99.99859539472943
+15:45:35 I periodic.go:693> T009 ended after 1m40.001408667s : 10000 calls. qps=99.99859135284314
+15:45:35 I periodic.go:693> T053 ended after 1m40.00141275s : 10000 calls. qps=99.99858726995835
+15:45:35 I periodic.go:693> T060 ended after 1m40.001482917s : 10000 calls. qps=99.9985171049901
+15:45:35 I periodic.go:693> T018 ended after 1m40.001416917s : 10000 calls. qps=99.99858310307626
+15:45:35 I periodic.go:693> T022 ended after 1m40.001422042s : 10000 calls. qps=99.99857797822175
+15:45:35 I periodic.go:693> T078 ended after 1m40.001425625s : 10000 calls. qps=99.99857439532379
+15:45:35 I periodic.go:693> T015 ended after 1m40.001429292s : 10000 calls. qps=99.99857072842846
+15:45:35 I periodic.go:693> T051 ended after 1m40.001433042s : 10000 calls. qps=99.99856697853579
+15:45:35 I periodic.go:693> T081 ended after 1m40.001436667s : 10000 calls. qps=99.99856335363984
+15:45:35 I periodic.go:693> T055 ended after 1m40.001440333s : 10000 calls. qps=99.99855968774528
+15:45:35 I periodic.go:693> T094 ended after 1m40.001444334s : 10000 calls. qps=99.99855568686071
+15:45:35 I periodic.go:693> T020 ended after 1m40.001447792s : 10000 calls. qps=99.99855222896072
+15:45:35 I periodic.go:693> T040 ended after 1m40.001451667s : 10000 calls. qps=99.99854835407307
+15:45:35 I periodic.go:693> T077 ended after 1m40.00145525s : 10000 calls. qps=99.99854477117721
+15:45:35 I periodic.go:693> T071 ended after 1m40.001459042s : 10000 calls. qps=99.99854097928772
+15:45:35 I periodic.go:693> T024 ended after 1m40.001463125s : 10000 calls. qps=99.99853689640703
+15:45:35 I periodic.go:693> T072 ended after 1m40.001547917s : 10000 calls. qps=99.9984521069601
+15:45:35 I periodic.go:693> T035 ended after 1m40.001487125s : 10000 calls. qps=99.99851289711508
+15:45:35 I periodic.go:693> T026 ended after 1m40.001490959s : 10000 calls. qps=99.99850906322926
+15:45:35 I periodic.go:693> T023 ended after 1m40.001494917s : 10000 calls. qps=99.99850510534743
+15:45:35 I periodic.go:693> T041 ended after 1m40.0014985s : 10000 calls. qps=99.99850152245469
+15:45:35 I periodic.go:693> T008 ended after 1m40.001510292s : 10000 calls. qps=99.99848973080947
+15:45:35 I periodic.go:693> T004 ended after 1m40.001514458s : 10000 calls. qps=99.99848556493548
+15:45:35 I periodic.go:693> T017 ended after 1m40.001518042s : 10000 calls. qps=99.99848198104416
+15:45:35 I periodic.go:693> T066 ended after 1m40.0015215s : 10000 calls. qps=99.99847852314927
+15:45:35 I periodic.go:693> T012 ended after 1m40.001525083s : 10000 calls. qps=99.99847494025842
+15:45:35 I periodic.go:693> T084 ended after 1m40.001528958s : 10000 calls. qps=99.99847106537678
+15:45:35 I periodic.go:693> T027 ended after 1m40.001533667s : 10000 calls. qps=99.99846635652098
+15:45:35 I periodic.go:693> T057 ended after 1m40.00160025s : 10000 calls. qps=99.9983997756076
+15:45:35 I periodic.go:693> T075 ended after 1m40.001537208s : 10000 calls. qps=99.99846281562972
+15:45:35 I periodic.go:693> T044 ended after 1m40.00154075s : 10000 calls. qps=99.99845927373873
+15:45:35 I periodic.go:693> T067 ended after 1m40.001544417s : 10000 calls. qps=99.99845560685186
+15:45:35 I periodic.go:693> T064 ended after 1m40.001473s : 10000 calls. qps=99.99852702169697
+15:45:35 I periodic.go:693> T033 ended after 1m40.001554292s : 10000 calls. qps=99.99844573215786
+15:45:35 I periodic.go:693> T052 ended after 1m40.001559709s : 10000 calls. qps=99.99844031532653
+15:45:35 I periodic.go:693> T047 ended after 1m40.001564208s : 10000 calls. qps=99.99843581646708
+15:45:35 I periodic.go:693> T050 ended after 1m40.001568042s : 10000 calls. qps=99.99843198258716
+15:45:35 I periodic.go:693> T049 ended after 1m40.001571917s : 10000 calls. qps=99.99842810770883
+15:45:35 I periodic.go:693> T099 ended after 1m40.001575792s : 10000 calls. qps=99.99842423283081
+15:45:35 I periodic.go:693> T038 ended after 1m40.0015835s : 10000 calls. qps=99.99841652507433
+15:45:35 I periodic.go:693> T003 ended after 1m40.001587834s : 10000 calls. qps=99.99841219121176
+15:45:35 I periodic.go:693> T096 ended after 1m40.001591417s : 10000 calls. qps=99.99840860832568
+15:45:35 I periodic.go:693> T048 ended after 1m40.001596292s : 10000 calls. qps=99.99840373348107
+Ended after 1m40.001635209s : 1000000 calls. qps=9999.8
+Sleep times : count 999900 avg 0.0088994515 +/- 0.000329 min -0.00543475 max 0.009866375 sum 8898.56159
+Aggregated Function Time : count 1000000 avg 0.00064461236 +/- 0.0002207 min 1.2542e-05 max 0.012724125 sum 644.612364
+# range, mid point, percentile, count
+>= 1.2542e-05 <= 0.001 , 0.000506271 , 95.87, 958723
+> 0.001 <= 0.002 , 0.0015 , 99.91, 40413
+> 0.002 <= 0.003 , 0.0025 , 99.97, 576
+> 0.003 <= 0.004 , 0.0035 , 99.99, 193
+> 0.004 <= 0.005 , 0.0045 , 99.99, 31
+> 0.005 <= 0.006 , 0.0055 , 99.99, 5
+> 0.006 <= 0.007 , 0.0065 , 99.99, 5
+> 0.007 <= 0.008 , 0.0075 , 99.99, 1
+> 0.008 <= 0.009 , 0.0085 , 100.00, 4
+> 0.009 <= 0.01 , 0.0095 , 100.00, 7
+> 0.01 <= 0.011 , 0.0105 , 100.00, 39
+> 0.012 <= 0.0127241 , 0.0123621 , 100.00, 3
+# target 50% 0.000527528
+# target 75% 0.000785021
+# target 90% 0.000939517
+# target 99% 0.00177393
+# target 99.9% 0.00199663
+Sockets used: 100 (for perfect keepalive, would be 100)
+Jitter: false
+Uniform: false
+Code 200 : 1000000 (100.0 %)
+Response Header Sizes : count 1000000 avg 152 +/- 0 min 152 max 152 sum 152000000
+Response Body/Total Sizes : count 1000000 avg 161 +/- 0 min 161 max 161 sum 161000000
+All done 1000000 calls (plus 0 warmup) 0.645 ms avg, 9999.8 qps
+~~~~
+
 ## 18. freebsd13-arm64, fortio test pipy
+
+~~~~bash
+root@freebsd13-aa64:~ # fortio load -c 100 -n 1000000 -qps 10000 http://127.0.0.1:8081/
+Fortio dev running at 10000 queries per second, 2->2 procs, for 1000000 calls: http://127.0.0.1:8081/
+15:49:38 I httprunner.go:87> Starting http test for http://127.0.0.1:8081/ with 100 threads at 10000.0 qps and parallel warmup
+Starting at 10000 qps with 100 thread(s) [gomax 2] : exactly 1000000, 10000 calls each (total 1000000 + 0)
+15:51:18 I periodic.go:693> T032 ended after 1m40.000338417s : 10000 calls. qps=99.99966158414526
+15:51:18 I periodic.go:693> T049 ended after 1m40.00055425s : 10000 calls. qps=99.99944575307192
+15:51:18 I periodic.go:693> T026 ended after 1m40.000604959s : 10000 calls. qps=99.99939504465974
+15:51:18 I periodic.go:693> T045 ended after 1m40.000610625s : 10000 calls. qps=99.99938937872861
+15:51:18 I periodic.go:693> T008 ended after 1m40.00061525s : 10000 calls. qps=99.99938475378531
+15:51:18 I periodic.go:693> T061 ended after 1m40.000620584s : 10000 calls. qps=99.99937941985122
+15:51:18 I periodic.go:693> T046 ended after 1m40.000624625s : 10000 calls. qps=99.99937537890153
+15:51:18 I periodic.go:693> T054 ended after 1m40.00062875s : 10000 calls. qps=99.99937125395324
+15:51:18 I periodic.go:693> T087 ended after 1m40.000632875s : 10000 calls. qps=99.9993671290053
+15:51:18 I periodic.go:693> T013 ended after 1m40.000637208s : 10000 calls. qps=99.99936279606031
+15:51:18 I periodic.go:693> T073 ended after 1m40.000642167s : 10000 calls. qps=99.99935783712377
+15:51:18 I periodic.go:693> T047 ended after 1m40.000646292s : 10000 calls. qps=99.99935371217691
+15:51:18 I periodic.go:693> T081 ended after 1m40.000654s : 10000 calls. qps=99.99934600427713
+15:51:18 I periodic.go:693> T027 ended after 1m40.000662625s : 10000 calls. qps=99.99933737939068
+15:51:18 I periodic.go:693> T034 ended after 1m40.000670625s : 10000 calls. qps=99.99932937949735
+15:51:18 I periodic.go:693> T019 ended after 1m40.000675042s : 10000 calls. qps=99.99932496255678
+15:51:18 I periodic.go:693> T057 ended after 1m40.00067925s : 10000 calls. qps=99.99932075461378
+15:51:18 I periodic.go:693> T053 ended after 1m40.000687125s : 10000 calls. qps=99.99931287972137
+15:51:18 I periodic.go:693> T076 ended after 1m40.000695167s : 10000 calls. qps=99.99930483783254
+15:51:18 I periodic.go:693> T058 ended after 1m40.000703542s : 10000 calls. qps=99.99929646294969
+15:51:18 I periodic.go:693> T039 ended after 1m40.000712917s : 10000 calls. qps=99.99928708808247
+15:51:18 I periodic.go:693> T055 ended after 1m40.000927542s : 10000 calls. qps=99.99907246660327
+15:51:18 I periodic.go:693> T024 ended after 1m40.000727709s : 10000 calls. qps=99.99927229629556
+15:51:18 I periodic.go:693> T097 ended after 1m40.001136833s : 10000 calls. qps=99.99886317992375
+15:51:18 I periodic.go:693> T014 ended after 1m40.001175292s : 10000 calls. qps=99.99882472181295
+15:51:18 I periodic.go:693> T012 ended after 1m40.001153375s : 10000 calls. qps=99.99884663830258
+15:51:18 I periodic.go:693> T072 ended after 1m40.001218042s : 10000 calls. qps=99.99878197283607
+15:51:18 I periodic.go:693> T065 ended after 1m40.002230417s : 10000 calls. qps=99.99776963274648
+15:51:18 I periodic.go:693> T059 ended after 1m40.00223225s : 10000 calls. qps=99.99776779982828
+15:51:18 I periodic.go:693> T078 ended after 1m40.002240417s : 10000 calls. qps=99.99775963319357
+15:51:18 I periodic.go:693> T085 ended after 1m40.002239875s : 10000 calls. qps=99.99776017516928
+15:51:18 I periodic.go:693> T028 ended after 1m40.002243792s : 10000 calls. qps=99.9977562583449
+15:51:18 I periodic.go:693> T084 ended after 1m40.002243875s : 10000 calls. qps=99.99775617534861
+15:51:18 I periodic.go:693> T036 ended after 1m40.002247167s : 10000 calls. qps=99.99775288349647
+15:51:18 I periodic.go:693> T071 ended after 1m40.002247375s : 10000 calls. qps=99.99775267550581
+15:51:18 I periodic.go:693> T016 ended after 1m40.002250583s : 10000 calls. qps=99.9977494676501
+15:51:18 I periodic.go:693> T002 ended after 1m40.002251042s : 10000 calls. qps=99.99774900867077
+15:51:18 I periodic.go:693> T015 ended after 1m40.002253917s : 10000 calls. qps=99.99774613380026
+15:51:18 I periodic.go:693> T005 ended after 1m40.002254458s : 10000 calls. qps=99.99774559282467
+15:51:18 I periodic.go:693> T092 ended after 1m40.0022575s : 10000 calls. qps=99.99774255096192
+15:51:18 I periodic.go:693> T010 ended after 1m40.002257875s : 10000 calls. qps=99.99774217597884
+15:51:18 I periodic.go:693> T035 ended after 1m40.002261333s : 10000 calls. qps=99.99773871813511
+15:51:18 I periodic.go:693> T098 ended after 1m40.0022615s : 10000 calls. qps=99.99773855114266
+15:51:18 I periodic.go:693> T082 ended after 1m40.0022645s : 10000 calls. qps=99.99773555127845
+15:51:18 I periodic.go:693> T025 ended after 1m40.002265042s : 10000 calls. qps=99.99773500930299
+15:51:18 I periodic.go:693> T048 ended after 1m40.002268042s : 10000 calls. qps=99.99773200943898
+15:51:18 I periodic.go:693> T011 ended after 1m40.002268625s : 10000 calls. qps=99.99773142646542
+15:51:18 I periodic.go:693> T043 ended after 1m40.002271459s : 10000 calls. qps=99.99772859259409
+15:51:18 I periodic.go:693> T022 ended after 1m40.002272084s : 10000 calls. qps=99.99772796762248
+15:51:18 I periodic.go:693> T080 ended after 1m40.001214834s : 10000 calls. qps=99.99878518075805
+15:51:18 I periodic.go:693> T056 ended after 1m40.0022755s : 10000 calls. qps=99.99772455177782
+15:51:18 I periodic.go:693> T030 ended after 1m40.00227925s : 10000 calls. qps=99.99772080194862
+15:51:18 I periodic.go:693> T089 ended after 1m40.002282625s : 10000 calls. qps=99.99771742710257
+15:51:18 I periodic.go:693> T050 ended after 1m40.002286042s : 10000 calls. qps=99.99771401025869
+15:51:18 I periodic.go:693> T038 ended after 1m40.002126125s : 10000 calls. qps=99.9978739202031
+15:51:18 I periodic.go:693> T006 ended after 1m40.002338667s : 10000 calls. qps=99.99766138769235
+15:51:18 I periodic.go:693> T041 ended after 1m40.002344042s : 10000 calls. qps=99.99765601294403
+15:51:18 I periodic.go:693> T079 ended after 1m40.002348s : 10000 calls. qps=99.99765205512975
+15:51:18 I periodic.go:693> T086 ended after 1m40.002352167s : 10000 calls. qps=99.9976478883256
+15:51:18 I periodic.go:693> T062 ended after 1m40.002356042s : 10000 calls. qps=99.99764401350802
+15:51:18 I periodic.go:693> T001 ended after 1m40.002359958s : 10000 calls. qps=99.99764009769271
+15:51:18 I periodic.go:693> T033 ended after 1m40.002363708s : 10000 calls. qps=99.99763634786983
+15:51:18 I periodic.go:693> T095 ended after 1m40.002367667s : 10000 calls. qps=99.99763238905715
+15:51:18 I periodic.go:693> T037 ended after 1m40.0023715s : 10000 calls. qps=99.9976285562388
+15:51:18 I periodic.go:693> T093 ended after 1m40.002375375s : 10000 calls. qps=99.99762468142272
+15:51:18 I periodic.go:693> T064 ended after 1m40.00237925s : 10000 calls. qps=99.99762080660696
+15:51:18 I periodic.go:693> T029 ended after 1m40.002383125s : 10000 calls. qps=99.9976169317915
+15:51:18 I periodic.go:693> T088 ended after 1m40.002420042s : 10000 calls. qps=99.99758001656461
+15:51:18 I periodic.go:693> T096 ended after 1m40.002425625s : 10000 calls. qps=99.99757443383514
+15:51:18 I periodic.go:693> T007 ended after 1m40.002429292s : 10000 calls. qps=99.99757076701316
+15:51:18 I periodic.go:693> T018 ended after 1m40.0024335s : 10000 calls. qps=99.99756655921779
+15:51:18 I periodic.go:693> T074 ended after 1m40.002437583s : 10000 calls. qps=99.99756247641666
+15:51:18 I periodic.go:693> T090 ended after 1m40.002456542s : 10000 calls. qps=99.9975435183445
+15:51:18 I periodic.go:693> T068 ended after 1m40.002531875s : 10000 calls. qps=99.99746818910228
+15:51:18 I periodic.go:693> T067 ended after 1m40.002560167s : 10000 calls. qps=99.99743989854288
+15:51:18 I periodic.go:693> T060 ended after 1m40.002565084s : 10000 calls. qps=99.99743498179487
+15:51:18 I periodic.go:693> T017 ended after 1m40.002570292s : 10000 calls. qps=99.99742977406231
+15:51:18 I periodic.go:693> T040 ended after 1m40.00257425s : 10000 calls. qps=99.99742581626593
+15:51:18 I periodic.go:693> T070 ended after 1m40.002578167s : 10000 calls. qps=99.99742189946774
+15:51:18 I periodic.go:693> T069 ended after 1m40.002581708s : 10000 calls. qps=99.99741835865045
+15:51:18 I periodic.go:693> T020 ended after 1m40.002585834s : 10000 calls. qps=99.99741423286365
+15:51:18 I periodic.go:693> T063 ended after 1m40.00258975s : 10000 calls. qps=99.99741031706631
+15:51:18 I periodic.go:693> T044 ended after 1m40.002594s : 10000 calls. qps=99.99740606728662
+15:51:18 I periodic.go:693> T021 ended after 1m40.002597667s : 10000 calls. qps=99.99740240047699
+15:51:18 I periodic.go:693> T004 ended after 1m40.002696792s : 10000 calls. qps=99.99730328072492
+15:51:18 I periodic.go:693> T091 ended after 1m40.002701209s : 10000 calls. qps=99.99729886396334
+15:51:18 I periodic.go:693> T003 ended after 1m40.002715417s : 10000 calls. qps=99.99728465673289
+15:51:18 I periodic.go:693> T042 ended after 1m40.002719792s : 10000 calls. qps=99.99728028197067
+15:51:18 I periodic.go:693> T077 ended after 1m40.002723542s : 10000 calls. qps=99.9972765321748
+15:51:18 I periodic.go:693> T052 ended after 1m40.002727459s : 10000 calls. qps=99.9972726153883
+15:51:18 I periodic.go:693> T066 ended after 1m40.002731459s : 10000 calls. qps=99.99726861560664
+15:51:18 I periodic.go:693> T031 ended after 1m40.0027355s : 10000 calls. qps=99.99726457482755
+15:51:18 I periodic.go:693> T023 ended after 1m40.002739792s : 10000 calls. qps=99.99726028306254
+15:51:18 I periodic.go:693> T099 ended after 1m40.00276675s : 10000 calls. qps=99.99723332654693
+15:51:18 I periodic.go:693> T009 ended after 1m40.002773125s : 10000 calls. qps=99.99722695190009
+15:51:18 I periodic.go:693> T083 ended after 1m40.002777084s : 10000 calls. qps=99.9972229931198
+15:51:18 I periodic.go:693> T051 ended after 1m40.002781375s : 10000 calls. qps=99.99721870235832
+15:51:18 I periodic.go:693> T000 ended after 1m40.002781875s : 10000 calls. qps=99.99721820238614
+15:51:18 I periodic.go:693> T075 ended after 1m40.002785375s : 10000 calls. qps=99.99721470258098
+15:51:18 I periodic.go:693> T094 ended after 1m40.002789958s : 10000 calls. qps=99.9972101198365
+Ended after 1m40.002811459s : 1000000 calls. qps=9999.7
+Sleep times : count 999900 avg 0.0091806549 +/- 0.0004065 min -0.011972253 max 0.009958824 sum 9179.73683
+Aggregated Function Time : count 1000000 avg 0.00032903507 +/- 0.0001963 min 1.0666e-05 max 0.01108425 sum 329.035073
+# range, mid point, percentile, count
+>= 1.0666e-05 <= 0.001 , 0.000505333 , 99.81, 998150
+> 0.001 <= 0.002 , 0.0015 , 99.93, 1156
+> 0.002 <= 0.003 , 0.0025 , 99.96, 259
+> 0.003 <= 0.004 , 0.0035 , 99.96, 74
+> 0.004 <= 0.005 , 0.0045 , 99.97, 73
+> 0.005 <= 0.006 , 0.0055 , 99.97, 5
+> 0.006 <= 0.007 , 0.0065 , 99.98, 99
+> 0.007 <= 0.008 , 0.0075 , 99.98, 18
+> 0.008 <= 0.009 , 0.0085 , 99.98, 1
+> 0.009 <= 0.01 , 0.0095 , 99.98, 6
+> 0.01 <= 0.011 , 0.0105 , 100.00, 147
+> 0.011 <= 0.0110843 , 0.0110421 , 100.00, 12
+# target 50% 0.000506249
+# target 75% 0.000754041
+# target 90% 0.000902717
+# target 99% 0.000991922
+# target 99.9% 0.00173529
+Sockets used: 100 (for perfect keepalive, would be 100)
+Jitter: false
+Uniform: false
+Code 200 : 1000000 (100.0 %)
+Response Header Sizes : count 1000000 avg 62 +/- 0 min 62 max 62 sum 62000000
+Response Body/Total Sizes : count 1000000 avg 62 +/- 0 min 62 max 62 sum 62000000
+All done 1000000 calls (plus 0 warmup) 0.329 ms avg, 9999.7 qps
+~~~~
