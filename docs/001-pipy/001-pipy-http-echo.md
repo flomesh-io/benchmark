@@ -6,7 +6,7 @@ title: Benchmarking HTTP Echo Service
 
 ## Purpose of benchmarking
 
-Our main goal here is to check if each tool under testing performs well enough under constraint resources. We will perform a baseline performance testing against [nginx - open source](https://nginx.org/), [hashicorp http-echo](https://github.com/hashicorp/http-echo), and [Pipy](https://flomesh.io). We use a very basic output of "Hello World" returned as output and captured various performance-related metrics of these tools.
+Our main goal here is to check if each tool under testing performs well enough under constraint resources. We ran a baseline performance testing against [nginx - open source](https://nginx.org/), [hashicorp http-echo](https://github.com/hashicorp/http-echo), and [Pipy](https://flomesh.io). We use a very basic output of "Hello World" and captured various performance-related metrics of these tools.
 
 ## Benchmark platform and procedure
 
@@ -30,8 +30,6 @@ We used a virtual machine with 2 vcpus, one running the test program and the oth
 We ran this test on two operating systems, `Ubuntu21 Server` and `FreeBSD13`, both of which were ARM versions. Each VM is configured with **2C4G**.
 ## Why FreeBSD
 
-We chose to do our testing on FreeBSD because we found that: when we want to provide a software load balancer, the overall cost (TCO) is better with FreeBSD (compared to Linux). In several of our test scenarios, FreeBSD such as Linux provided up to 30% better performance (latency, throughput rate).
-
 We chose to test on FreeBSD because we found that the total cost of ownership (TCO) of using FreeBSD was more advantageous (compared to Linux) when we wanted to provide a software load balancer. FreeBSD outperformed Linux up to 30% in performance (latency, throughput) in several of our test scenarios.
 ## About ARM64
 
@@ -54,7 +52,7 @@ We ran tests for below criteria:
  * `http-echo`, `pipy`, and `fortio` were compiled from source code
  * Nginx was configured with 1 worker, and turned off access and error logging (to avoid disk operations affecting performance)
  
-We did not change any kernel parameters other than **Max open files**"**; We set the maximum number of open files to **1024000**.
+We did not change any kernel parameters other than **Max open files**; We set the maximum number of open files to **1024000**.
 
 The script we use for pipy is `tutorial/02-echo/echo.js`. This script listens on 3 ports, 8080 for basic hello world information, 8081 for echo service, and 8082 for dynamic content with the client's IP address.
 
@@ -85,24 +83,31 @@ The following is the list of test cases,(two platforms, 3 types of load tester, 
 
 ## Test Report
 
-Major indicators we recorded are qps and latency, together with cpu and memory usage. We use 'top' to roughtly record mem and cpu. Put all key result into this table:
-
 We focus on four main metrics: `Throughput QPS`, `Latency`, `CPU usage`, and `memory usage`. For CPU and memory usage, we simply observed and record using the `top` command. The test data are summarized in the following table:
 
  * `ab` does not provide latency data
  * `wrk` has no latency data for P99.9
 
- | Test Case #| OS           | Testing Tool | Upstream Server | QPS    | Latency P50 | P90/P50  | P99/P50  | P99.9/P50 | Mem(RES) | CPU |
- |------------|--------------|--------|-----------------|--------|-------------|----------|----------|-----------|----------|-----|
- | 1          |ubuntu21-arm64| ab     | nginx           | 60824  |             |          |          |           |      6.5M|  91%|
- | 2          |ubuntu21-arm64| ab     | http-echo       | 44826  |             |          |          |           |     11.9M| 106%|
- | 3          |ubuntu21-arm64| ab     | pipy            | 59698  |             |          |          |           |      9.3M|  94%|
- | 4          |ubuntu21-arm64| wrk    | nginx           | 82759  |    1.20ms   |    112.5%|      185%|           |      6.5M| 100%|
- | 5          |ubuntu21-arm64| wrk    | http-echo       | 94579  |    0.94ms   |    396.8%|     1023%|           |     12.7M| 107%|
- | 6          |ubuntu21-arm64| wrk    | pipy            |218539  |   0.445ms   |    111.9%|      137%|           |      9.3M| 100%|
- | 7          |ubuntu21-arm64| fortio | nginx           |        |   1.449ms   |    238.5%|    334.7%|     535.7%|      6.5M|  29%|
- | 8          |ubuntu21-arm64| fprtio | http-echo       |        |   0.633ms   |    240.1%|    311.6%|     471.9%|     11.4M|  15%|
- | 9          |ubuntu21-arm64| fortio | pipy            |        |   1.851ms   |    189.7%|    269.1%|     414.2%|      9.6M|  33%|
+ | Test Case #| OS            | Testing Tool | Upstream Server |  qps | Latency P50 | P90/P50  | P99/P50  | P99.9/P50 | Mem(RES) | CPU |
+ |------------|---------------|--------|-----------------|------|-------------|----------|----------|-----------|----------|-----|
+ | 1          |ubuntu21-arm64 | ab     | nginx           | 60824|             |          |          |           |      6.5M|  91%|
+ | 2          |ubuntu21-arm64 | ab     | http-echo       | 44826|             |          |          |           |     11.9M| 106%|
+ | 3          |ubuntu21-arm64 | ab     | pipy            | 59698|             |          |          |           |      9.3M|  94%|
+ | 4          |ubuntu21-arm64 | wrk    | nginx           | 82759|    1.20ms   |    112.5%|      185%|           |      6.5M| 100%|
+ | 5          |ubuntu21-arm64 | wrk    | http-echo       | 94579|    0.94ms   |    396.8%|     1023%|           |     12.7M| 107%|
+ | 6          |ubuntu21-arm64 | wrk    | pipy            |218539|    0.45ms   |    111.9%|      137%|           |      9.3M| 100%|
+ | 7          |ubuntu21-arm64 | fortio | nginx           |      |   1.449ms   |    238.5%|    334.7%|     535.7%|      6.5M|  29%|
+ | 8          |ubuntu21-arm64 | fprtio | http-echo       |      |   0.633ms   |    240.1%|    311.6%|     471.9%|     11.4M|  15%|
+ | 9          |ubuntu21-arm64 | fortio | pipy            |      |   1.851ms   |    189.7%|    269.1%|     414.2%|      9.6M|  33%|
+ | 10         |freebsd13-arm64| ab     | nginx           | 93680|             |          |          |           |      7.5M|  59%|
+ | 11         |freebsd13-arm64| ab     | http-echo       | 61230|             |          |          |           |       13M| 106%|
+ | 12         |freebsd13-arm64| ab     | pipy            | 95074|             |          |          |           |      8.1M|  73%|
+ | 13         |freebsd13-arm64| wrk    | nginx           |204544|     485us   |      104%|      123%|           |      7.5M|  89%|
+ | 14         |freebsd13-arm64| wrk    | http-echo       |134889|     645us   |      142%|      213%|           |       13M| 136%|
+ | 15         |freebsd13-arm64| wrk    | pipy            |281176|     350us   |      108%|      122%|           |      9.5M|  85%|
+ | 16         |freebsd13-arm64| fortio | nginx           |      |     507us   |      178%|      195%|     356.4%|      6.5M| 5.5%|
+ | 17         |freebsd13-arm64| fprtio | http-echo       |      |     527us   |      178%|      336%|     378.7%|       13M|  11%|
+ | 18         |freebsd13-arm64| fortio | pipy            |      |     506us   |      178%|    195.8%|     342.9%|      9.5M| 3.7%|
  
 # Appendix : Test Records
 
