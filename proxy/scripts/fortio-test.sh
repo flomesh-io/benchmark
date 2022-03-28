@@ -11,10 +11,23 @@ proxy_port_map["haproxy"]="28080"
 proxy_port_map["pipy"]="38080"
 proxy_port_map["envoy"]="48080"
 
-echo "${!proxy_port_map[@]}"
-echo "${proxy_port_map[@]}"
+#echo "${!proxy_port_map[@]}"
+#echo "${proxy_port_map[@]}"
 
-while getopts "l:h:s:t:d:c:q:" options;
+function usage() {
+    echo "Usage: $0 [-l <floor level QPS> |-u <upper limit QPS> |-s <QPS steps>|-t <proxy type>|-d <duration>|-c <connections>|-q <QPS>]" 1>&2
+    echo "       -l <floor level QPS>   Set floor level QPS"
+    echo "       -u <upper limit QPS>   Set uppper limit QPS"
+    echo "       -s <QPS steps>         QPS steps between each test case"
+    echo "       -c <connecitons>       Number of connections"
+    echo "       -t <proxy type>        Could be nginx, haproxy, pipy, envoy and all"
+    echo "       -d <duration>          Test duration"
+    echo "       -q <QPS>               Set QPS"
+    echo ""
+    exit 1
+}
+
+while getopts "l:u:s:t:d:c:q:h" options;
 do
   case "${options}" in
     d)
@@ -23,7 +36,7 @@ do
     l)
       START=${OPTARG}
       ;;
-    h)
+    u)
       END=${OPTARG}
       ;;
     s)
@@ -39,7 +52,7 @@ do
       QPS=${OPTARG}
       ;;
     *)
-      echo "no args"
+      usage
       ;;
   esac
 done
@@ -66,6 +79,8 @@ then
   do
     CASE=${CONNECTIONS}-${rate}
     echo "Start testing rs...$CASE"
+    echo "$COMMAND -labels "rs-${CASE}" -qps ${rate##0} -json rs-${CASE}-${DURATION}.json ${REAL_SERVER_IP}:${REAL_SERVER_PORT:-5678}"
+
     $COMMAND -labels "rs-${CASE}" -qps ${rate##0} -json rs-${CASE}-${DURATION}.json ${REAL_SERVER_IP}:${REAL_SERVER_PORT:-5678}
 
     for proxy  in "${!proxy_port_map[@]}"
@@ -81,6 +96,7 @@ then
       ssh ${PROXY_SERVER_IP} sudo systemctl start $proxy
       sleep 10
       echo "Start testing $proxy...$CASE"
+      echo "$COMMAND -labels "${proxy}-${CASE}" -qps $rate -json ${proxy}-${CASE}-${DURATION}.json $ADDR"
 
       $COMMAND -labels "${proxy}-${CASE}" -qps $rate -json ${proxy}-${CASE}-${DURATION}.json $ADDR
       sleep 10
@@ -120,6 +136,8 @@ then
   do
       CASE=${conn}-${QPS}
       echo "start testing $ADDR...${CASE}"
+      echo "$COMMAND -labels ${PROXY_TYPE}-${CASE} -c ${conn##0} -json ${PROXY_TYPE}-${CASE}-${DURATION}.json $ADDR"
+
       $COMMAND -labels "${PROXY_TYPE}-${CASE}" -c ${conn##0} -json ${PROXY_TYPE}-${CASE}-${DURATION}.json $ADDR
       sleep 10
   done
