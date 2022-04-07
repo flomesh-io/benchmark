@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PROXY_SERVER_IP="172.31.16.178"
-REAL_SERVER_IP="172.31.23.212"
+PROXY_SERVER_IP="proxy"
+REAL_SERVER_IP="server"
 
 DATA_DIR="fortio-data"
 

@@ -1,0 +1,204 @@
+{
+  "RunType": "HTTP",
+  "Labels": "pipy-32-02000",
+  "StartTime": "2022-03-30T10:24:19.768462152Z",
+  "RequestedQPS": "2000",
+  "RequestedDuration": "1m0s",
+  "ActualQPS": 1999.9194557771498,
+  "ActualDuration": 60002416424,
+  "NumThreads": 32,
+  "Version": "dev",
+  "DurationHistogram": {
+    "Count": 120000,
+    "Min": 0.000200692,
+    "Max": 0.002682133,
+    "Sum": 106.293973885,
+    "Avg": 0.0008857831157083333,
+    "StdDev": 0.00031817338582805873,
+    "Data": [
+      {
+        "Start": 0.000200692,
+        "End": 0.00030000000000000003,
+        "Percent": 0.035,
+        "Count": 42
+      },
+      {
+        "Start": 0.00030000000000000003,
+        "End": 0.0004,
+        "Percent": 1.1366666666666667,
+        "Count": 1322
+      },
+      {
+        "Start": 0.0004,
+        "End": 0.0005,
+        "Percent": 8.211666666666666,
+        "Count": 8490
+      },
+      {
+        "Start": 0.0005,
+        "End": 0.0006000000000000001,
+        "Percent": 15.815833333333334,
+        "Count": 9125
+      },
+      {
+        "Start": 0.0006000000000000001,
+        "End": 0.0007,
+        "Percent": 31.791666666666668,
+        "Count": 19171
+      },
+      {
+        "Start": 0.0007,
+        "End": 0.0008,
+        "Percent": 47.41833333333334,
+        "Count": 18752
+      },
+      {
+        "Start": 0.0008,
+        "End": 0.0009000000000000001,
+        "Percent": 61.21666666666667,
+        "Count": 16558
+      },
+      {
+        "Start": 0.0009000000000000001,
+        "End": 0.001,
+        "Percent": 70.07166666666667,
+        "Count": 10626
+      },
+      {
+        "Start": 0.001,
+        "End": 0.0011,
+        "Percent": 76.7775,
+        "Count": 8047
+      },
+      {
+        "Start": 0.0011,
+        "End": 0.0012000000000000001,
+        "Percent": 82.84166666666667,
+        "Count": 7277
+      },
+      {
+        "Start": 0.0012000000000000001,
+        "End": 0.0014,
+        "Percent": 92.18166666666667,
+        "Count": 11208
+      },
+      {
+        "Start": 0.0014,
+        "End": 0.0016,
+        "Percent": 97.14083333333333,
+        "Count": 5951
+      },
+      {
+        "Start": 0.0016,
+        "End": 0.0018000000000000002,
+        "Percent": 99.02666666666667,
+        "Count": 2263
+      },
+      {
+        "Start": 0.0018000000000000002,
+        "End": 0.002,
+        "Percent": 99.67833333333333,
+        "Count": 782
+      },
+      {
+        "Start": 0.002,
+        "End": 0.0025,
+        "Percent": 99.98833333333333,
+        "Count": 372
+      },
+      {
+        "Start": 0.0025,
+        "End": 0.002682133,
+        "Percent": 100,
+        "Count": 14
+      }
+    ],
+    "Percentiles": [
+      {
+        "Percentile": 50,
+        "Value": 0.0008187099891291219
+      },
+      {
+        "Percentile": 75,
+        "Value": 0.0010734932272896732
+      },
+      {
+        "Percentile": 90,
+        "Value": 0.001353283369022127
+      },
+      {
+        "Percentile": 99,
+        "Value": 0.0017971718957136543
+      },
+      {
+        "Percentile": 99.9,
+        "Value": 0.002357526881720446
+      }
+    ]
+  },
+  "Exactly": 0,
+  "Jitter": false,
+  "Uniform": false,
+  "RunID": 0,
+  "AccessLoggerInfo": "",
+  "RetCodes": {
+    "200": 120000
+  },
+  "URL": "http://172.31.16.178:38080",
+  "NumConnections": 1,
+  "Compression": false,
+  "DisableFastClient": false,
+  "HTTP10": false,
+  "DisableKeepAlive": false,
+  "AllowHalfClose": false,
+  "Insecure": false,
+  "FollowRedirects": false,
+  "CACert": "",
+  "Cert": "",
+  "Key": "",
+  "Resolve": "",
+  "HTTPReqTimeOut": 3000000000,
+  "UserCredentials": "",
+  "ContentType": "",
+  "Payload": "",
+  "UnixDomainSocket": "",
+  "LogErrors": true,
+  "ID": 0,
+  "SequentialWarmup": false,
+  "Sizes": {
+    "Count": 120000,
+    "Min": 202,
+    "Max": 202,
+    "Sum": 24240000,
+    "Avg": 202,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 202,
+        "End": 202,
+        "Percent": 100,
+        "Count": 120000
+      }
+    ],
+    "Percentiles": null
+  },
+  "HeaderSizes": {
+    "Count": 120000,
+    "Min": 186,
+    "Max": 186,
+    "Sum": 22320000,
+    "Avg": 186,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 186,
+        "End": 186,
+        "Percent": 100,
+        "Count": 120000
+      }
+    ],
+    "Percentiles": null
+  },
+  "SocketCount": 32,
+  "AbortOn": 0
+}
