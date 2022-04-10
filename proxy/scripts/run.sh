@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PROXY_SERVER_IP="proxy"
-REAL_SERVER_IP="server"
+REAL_SERVER_IP="server01"
 
 DATA_DIR="result"
 
@@ -149,12 +149,12 @@ fi
 
 if [ "$MODE" = "payload" ]
 then
-    COMMAND="fortio load -r 0.0001 -t ${DURATION:-1m} -c 32 -httpbufferkb 1025 "
+    COMMAND="fortio load -r 0.0001 -t ${DURATION:-1m} -c 32 -httpbufferkb 1025 -qps 0 "
     for payload_size in 1 100 1000
     do
         ADDR=${PROXY_SERVER_IP}:"${proxy_port_map[$PROXY_TYPE]}"
         echo "start testing with payload size: ${payload_size}k..."
         echo "$COMMAND -json ${PROXY_TYPE}-${payload_size}k-${DURATION:-1m}.json $ADDR"
-        $COMMAND -labels "${PROXY_TYPE}-${payload_size}k" -json ${PROXY_TYPE}-${payload_size}k-${DURATION:-1m}.json $ADDR
+        $COMMAND -labels "${PROXY_TYPE}-${payload_size}k" -json ${PROXY_TYPE}-${payload_size}k-${DURATION:-1m}.json $ADDR/$payload_size
     done
 fi
