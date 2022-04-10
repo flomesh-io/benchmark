@@ -3,7 +3,7 @@
 PROXY_SERVER_IP="proxy"
 REAL_SERVER_IP="server"
 
-DATA_DIR="fortio-data"
+DATA_DIR="result"
 
 declare -A proxy_port_map
 proxy_port_map["nginx"]="18080"
@@ -23,11 +23,12 @@ function usage() {
     echo "       -t <proxy type>        Could be nginx, haproxy, pipy, envoy and all"
     echo "       -d <duration>          Test duration"
     echo "       -q <QPS>               Set QPS"
+    echo "       -m <mode>              test proxy with getting different payload size"
     echo ""
     exit 1
 }
 
-while getopts "l:u:s:t:d:c:q:h" options;
+while getopts "l:u:s:t:d:c:q:m:h" options;
 do
   case "${options}" in
     d)
@@ -51,6 +52,9 @@ do
     q)
       QPS=${OPTARG}
       ;;
+    m)
+      MODE=${OPTARG}
+      ;;
     *)
       usage
       ;;
@@ -64,7 +68,7 @@ fi
 
 cd $DATA_DIR
 
-if [ -n "$CONNECTIONS" ]
+if [ -n "$CONNECTIONS" ] && [ x"$MODE" != "x" ]
 then
   COMMAND="fortio load -r 0.0001 -t $DURATION -c $CONNECTIONS "
 
@@ -83,7 +87,7 @@ then
 
     $COMMAND -labels "rs-${CASE}" -qps ${rate##0} -json rs-${CASE}-${DURATION}.json ${REAL_SERVER_IP}:${REAL_SERVER_PORT:-5678}
 
-    for proxy  in "${!proxy_port_map[@]}"
+    for proxy in "${!proxy_port_map[@]}"
     do
       if [ "$proxy" != "$PROXY_TYPE" ] && [ "$PROXY_TYPE" != "all" ]
       then
@@ -104,7 +108,7 @@ then
   done
 fi
 
-if [ -n "$QPS" ]
+if [ -n "$QPS" ] && [ x"$MODE" != "x" ]
 then
   if [ "x$PROXY_TYPE" = "x" ]
   then
@@ -143,3 +147,14 @@ then
   done
 fi
 
+if [ "$MODE" = "payload" ]
+then
+    COMMAND="fortio load -r 0.0001 -t ${DURATION:-1m} -c 32 -httpbufferkb 1025 "
+    for payload_size in 1 100 1000
+    do
+        ADDR=${PROXY_SERVER_IP}:"${proxy_port_map[$PROXY_TYPE]}"
+        echo "start testing with payload size: ${payload_size}k..."
+        echo "$COMMAND -json ${PROXY_TYPE}-${payload_size}k-${DURATION:-1m}.json $ADDR"
+        $COMMAND -labels "${PROXY_TYPE}-${payload_size}k" -json ${PROXY_TYPE}-${payload_size}k-${DURATION:-1m}.json $ADDR
+    done
+fi
