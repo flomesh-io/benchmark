@@ -46,12 +46,12 @@ static_resources:
       cluster_name: http_echo
       endpoints:
       - lb_endpoints:
-{% for host in groups['realserver_group'] %}
+{% for host in groups['upstream_group'] %}
         - endpoint:
             address:
               socket_address:
                 address: {{hostvars[host]['ansible_default_ipv4']['address']}}
-                port_value: {{realserver_port|default(5678)}}
+                port_value: {{upstream_port|default(5678)}}
 {% endfor %}
     circuit_breakers:
       thresholds:

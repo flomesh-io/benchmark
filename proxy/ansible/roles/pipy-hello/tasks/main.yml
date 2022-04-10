@@ -1,3 +1,18 @@
+# https://github.com/ansible/ansible/issues/68536
+#- name: Populate systemd service facts
+#  ansible.builtin.service_facts:
+
+- name: Check if http-echo exists
+  stat:
+    path: /etc/systemd/system/http-echo.service
+  register: service_status
+
+- name: Stop http-echo
+  systemd:
+    name: http-echo
+    state: stopped
+  when: service_status.stat.exists
+
 - name: Remove previous download files
   file:
     path: /tmp/pipy-0.30.0-70-generic_linux-x86_64.tar.gz
@@ -19,11 +34,6 @@
     name: pipy
     system: yes
 
-- name: Init configs
-  copy:
-    src: pipy/
-    dest: /etc/pipy
-
 - name: Create start script
   template:
     src: pipy-start.sh.j2
@@ -37,10 +47,10 @@
   notify:
     - reload systemd
 
-- name: Configure balancer
+- name: Configure pipy
   template:
-    src: balancer.json.j2
-    dest: /etc/pipy/config/balancer.json
+    src: main.js.j2
+    dest: /etc/pipy/main.js
   notify:
     - restart pipy
 

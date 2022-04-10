@@ -4,5 +4,7 @@ client
 [proxy_group]
 proxy
 
-[realserver_group]
-server
+[upstream_group]
+server01
+#server02
+#server03

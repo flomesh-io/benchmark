@@ -1,0 +1,39 @@
+- name: Check if pipy exists
+  stat:
+    path: /etc/systemd/system/pipy.service
+  register: service_status
+
+- name: Stop pipy
+  systemd:
+    name: pipy
+    state: stopped
+  when: service_status.stat.exists
+
+- name: Download http-echo-x86-64
+  get_url:
+    url: https://github.com/hashicorp/http-echo/releases/download/v0.2.3/http-echo_0.2.3_linux_amd64.tar.gz
+    dest: /tmp/
+
+- name: Decompress tarball
+  unarchive:
+    remote_src: yes
+    src: /tmp/http-echo_0.2.3_linux_amd64.tar.gz
+    dest: /tmp/
+
+- name: Install http-echo
+  copy:
+    remote_src: yes
+    src: /tmp/http-echo
+    dest: /usr/bin/http-echo
+    mode: 0755
+
+- name: Configure systemd
+  template:
+    src: http-echo.service.j2
+    dest: /etc/systemd/system/http-echo.service
+
+- name: Start http-echo
+  systemd:
+    name: http-echo
+    enabled: yes
+    state: started

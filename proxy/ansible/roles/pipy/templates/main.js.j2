@@ -7,4 +7,4 @@ pipy()
 	.muxHTTP('connection', '')
 
 .pipeline('connection')
-	.connect('{{hostvars[groups["realserver_group"][0]]["ansible_default_ipv4"]["address"]}}:{{realserver_port|default(5678)}}')
+	.connect('{{hostvars[groups["upstream_group"][0]]["ansible_default_ipv4"]["address"]}}:{{realserver_port|default(5678)}}')

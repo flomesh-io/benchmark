@@ -5,8 +5,8 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Environment=PIPY_CONFIG_FILE=/etc/pipy/proxy.js
-Environment=PIPY_SPAWN={{ansible_processor_vcpus - 1}}
+Environment=PIPY_CONFIG_FILE=/etc/pipy/main.js
+Environment=PIPY_SPAWN=0
 ExecStart=/usr/bin/pipy-start.sh pipy docker-start
 ExecStop=/bin/killall pipy
 User=pipy

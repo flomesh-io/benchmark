@@ -97,44 +97,27 @@
         dest: /usr/bin/wrk
         mode: 0755
 
-    - name: Install autobench2
-      pip:
-        name: autobench2
+    - name: Install fortio
+      get_url:
+        url: https://github.com/fortio/fortio/releases/download/v1.25.0/fortio-linux_x64-1.25.0.tgz
+        dest: /tmp/fortio-linux_x64-1.25.0.tgz
 
-- hosts: realserver_group
+    - name: Decompress fortio
+      command: tar xvf /tmp/fortio-linux_x64-1.25.0.tgz -C /
+
+- hosts: upstream_group
   gather_facts: yes
   become: yes
-  tags: [rs, realserver]
+  tags: [upstream]
 
-  tasks:
-    - name: Download http-echo-x86-64
-      get_url:
-        url: https://github.com/hashicorp/http-echo/releases/download/v0.2.3/http-echo_0.2.3_linux_amd64.tar.gz
-        dest: /tmp/
+  roles:
+    - role: 'http-echo'
+      tags: 'echo'
+      when: mode is not defined or mode != 'payload'
 
-    - name: Decompress tarball
-      unarchive:
-        remote_src: yes
-        src: /tmp/http-echo_0.2.3_linux_amd64.tar.gz
-        dest: /tmp/
-
-    - name: Install http-echo
-      copy:
-        remote_src: yes
-        src: /tmp/http-echo
-        dest: /usr/bin/http-echo
-        mode: 0755
-
-    - name: Configure systemd
-      template:
-        src: http-echo.service.j2
-        dest: /etc/systemd/system/http-echo.service
-
-    - name: Start http-echo
-      systemd:
-        name: http-echo
-        enabled: yes
-        state: started
+    - role: 'pipy-hello'
+      tags: 'pipy-hello'
+      when: mode is defined and mode == 'payload'
 
 - hosts: proxy_group
   gather_facts: yes

@@ -1,1 +1,1 @@
-realserver_port: 5678
+upstream_port: 5678
