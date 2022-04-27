@@ -9,101 +9,18 @@
   become: yes
   tags: [init]
 
-  tasks:
-    - name: Set kernel options
-      sysctl:
-        name: "{{item.name}}"
-        value: "{{item.value}}"
-        sysctl_set: yes
-        reload: yes
-        state: present
-      with_items:
-        - {name: "net.ipv4.ip_local_port_range", value: "1024 64999"}
-        - {name: "net.ipv4.ip_local_reserved_ports", value: "18080,28080,38080,48080"}
-        - {name: "net.ipv4.tcp_timestamps", value: "0"}
-
-    - name: Set ulimit
-      pam_limits:
-        domain: "*"
-        limit_type: '-'
-        limit_item: "nofile"
-        value: 655360
-
-    - name: Disable irqbalance
-      systemd:
-        enabled: no
-        state: stopped
-        name: irqbalance
-      ignore_errors: yes
-
-    - name: Disable cron
-      systemd:
-        enabled: no
-        state: stopped
-        name: cron
-      ignore_errors: yes
+  roles:
+    - os-setup
 
 - hosts: client_group
   gather_facts: yes
   become: yes
   tags: [client]
 
-  tasks:
-    - name: Install build essentials
-      package:
-        name:
-          - git
-          - make
-          - gcc
-        state: present
-
-    - name: Install header packages
-      package:
-        name:
-          - libssl-dev
-          - zlib1g-dev
-          - python3-pip
-        state: present
-      when: ansible_pkg_mgr == 'apt'
-
-    - name: Install openssl devel
-      package:
-        name:
-          - openssl-devel
-        state: present
-      when: ansible_pkg_mgr == 'yum'
-
-    - name: Install wrk2
-      git:
-        repo: https://github.com/giltene/wrk2.git
-        dest: /tmp/wrk2
-      when: ansible_machine == 'x86_64'
-
-    - name: Install wrk2
-      git:
-        repo: https://github.com/AmpereTravis/wrk2-aarch64.git
-        dest: /tmp/wrk2
-      when: ansible_machine == 'aarch64'
-
-    - name: Make wrk2
-      make:
-        chdir: /tmp/wrk2
-        target: all
-
-    - name: Install wrk2
-      copy:
-        remote_src: yes
-        src: /tmp/wrk2/wrk
-        dest: /usr/bin/wrk
-        mode: 0755
-
-    - name: Install fortio
-      get_url:
-        url: https://github.com/fortio/fortio/releases/download/v1.25.0/fortio-linux_x64-1.25.0.tgz
-        dest: /tmp/fortio-linux_x64-1.25.0.tgz
-
-    - name: Decompress fortio
-      command: tar xvf /tmp/fortio-linux_x64-1.25.0.tgz -C /
+  roles:
+    - fortio
+    - wrk2
+    - jmeter
 
 - hosts: upstream_group
   gather_facts: yes
