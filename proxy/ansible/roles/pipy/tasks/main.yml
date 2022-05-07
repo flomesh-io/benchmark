@@ -1,17 +1,17 @@
 - name: Remove previous download files
   file:
-    path: /tmp/pipy-0.30.0-70-generic_linux-x86_64.tar.gz
+    path: "/tmp/{{pipy_binary_package}}"
     state: absent
 
 - name: Download pipy
   get_url:
-    url: https://pipy-oss-1255617643.cos-website.ap-beijing.myqcloud.com/repo/pipy/x86_64/binary/pipy-0.30.0-70-generic_linux-x86_64.tar.gz
-    dest: /tmp/pipy-0.30.0-70-generic_linux-x86_64.tar.gz
+    url: "https://pipy-oss-1255617643.cos-website.ap-beijing.myqcloud.com/repo/pipy/{{arch}}/binary/{{pipy_binary_package}}"
+    dest: "/tmp/{{pipy_binary_package}}"
 
 - name: Decompress tarball
   unarchive:
     remote_src: yes
-    src: /tmp/pipy-0.30.0-70-generic_linux-x86_64.tar.gz
+    src: "/tmp/{{pipy_binary_package}}"
     dest: /usr/local/bin
 
 - name: Create pipy user
@@ -19,16 +19,22 @@
     name: pipy
     system: yes
 
-- name: Init configs
-  copy:
-    src: pipy/
-    dest: /etc/pipy
+- name: Create working dir
+  file:
+    state: directory
+    path: /etc/pipy
+    owner: pipy
 
 - name: Create start script
   template:
     src: pipy-start.sh.j2
     dest: /usr/bin/pipy-start.sh
     mode: 0755
+
+- name: Set repo url
+  tags: repo
+  set_fact:
+    pipy_config_uri: "http://{{hostvars[groups['pipy_repo'][0]]['ansible_default_ipv4']['address']}}:{{repo_port|default('6060')}}/repo/benchmark/{{role}}/"
 
 - name: Configure systemd
   template:
@@ -37,16 +43,25 @@
   notify:
     - reload systemd
 
-- name: Configure balancer
-  template:
-    src: balancer.json.j2
-    dest: /etc/pipy/config/balancer.json
-  notify:
-    - restart pipy
-
 - name: Start pipy
   systemd:
     daemon_reload: yes
     enabled: yes
-    state: started
+    state: restarted
     name: pipy
+  tags: repo
+
+- name: Set balancer.json
+  tags: repo
+  local_action:
+    module: ansible.builtin.template
+    src: balancer.json.j2
+    dest: pipy-repo/proxy/config/balancer.json
+
+- name: Init repo
+  tags: repo
+  local_action:
+    module: ansible.builtin.shell ./init-repo.sh "{{hostvars[groups['pipy_repo'][0]]['ansible_default_ipv4']['address']}}:{{repo_port|default('6060')}}"
+    args:
+      chdir: pipy-repo
+  when: 'role == "repo"'

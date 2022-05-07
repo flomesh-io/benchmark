@@ -1,7 +1,10 @@
+[pipy_repo]
+
 [client_group]
 client
 
-[proxy_group]
+
+[generic_linux_x86_64]
 proxy
 
 [upstream_group]

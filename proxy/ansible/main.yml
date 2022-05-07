@@ -4,10 +4,27 @@
   become: yes
   tags: [always]
 
+  tasks:
+    - name: Define proxy group
+      add_host:
+        groups:
+          - proxy_group
+        name: "{{item}}"
+      loop: "{{groups[os+'_'+arch]}}"
+
+    - name: Define pipy repo
+      add_host:
+        groups:
+          - pipy_repo
+        name: "{{groups['client_group'][0]}}"
+      when: "groups['pipy_repo']|length == 0"
+
 - hosts: all
   gather_facts: yes
   become: yes
-  tags: [init]
+  tags:
+    - init
+    - always
 
   roles:
     - os-setup
@@ -22,19 +39,22 @@
     - wrk2
     - jmeter
 
+- hosts: pipy_repo
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - role: pipy
+      tags: pipy
+
 - hosts: upstream_group
   gather_facts: yes
   become: yes
   tags: [upstream]
 
   roles:
-    - role: 'http-echo'
-      tags: 'echo'
-      when: mode is not defined or mode != 'payload'
-
-    - role: 'pipy-hello'
-      tags: 'pipy-hello'
-      when: mode is defined and mode == 'payload'
+    - role: 'pipy'
+      tags: 'pipy'
 
 - hosts: proxy_group
   gather_facts: yes

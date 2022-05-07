@@ -2,7 +2,7 @@
   "services": {
     "default": [
                 {%- for host in groups['upstream_group'] -%}
-                "{{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ upstream_port | default(5678) }}"{% if not loop.last %},{% endif %}
+                "{{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ upstream_port | default(8080) }}"{% if not loop.last %},{% endif %}
                 {%- endfor -%}
             ]
   }

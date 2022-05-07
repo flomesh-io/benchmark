@@ -5,8 +5,16 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Environment=PIPY_CONFIG_FILE=/etc/pipy/proxy.js
-Environment=PIPY_SPAWN={{ansible_processor_vcpus - 1}}
+Environment=PIPY_CONFIG_FILE={% if role != "repo" %}
+{{pipy_config_uri|default("/etc/pipy/proxy.js")}}
+{% else %}
+""
+{% endif %}
+Environment=PIPY_SPAWN={% if role != "repo" %}
+{{ansible_processor_vcpus - 1}}
+{% else %}
+0
+{% endif %}
 ExecStart=/usr/bin/pipy-start.sh pipy docker-start
 ExecStop=/bin/killall pipy
 User=pipy
