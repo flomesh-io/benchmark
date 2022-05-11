@@ -1,0 +1,18 @@
+- name: Install fortio
+  get_url:
+    url: https://github.com/fortio/fortio/releases/download/v1.25.0/fortio-linux_x64-1.25.0.tgz
+    dest: /tmp/fortio-linux_x64-1.25.0.tgz
+
+- name: Decompress fortio
+  command: tar xvf /tmp/fortio-linux_x64-1.25.0.tgz -C /
+
+- name: Configure fortio server
+  template:
+    src: fortio-server.service.j2
+    dest: /etc/systemd/system/fortio-server.service
+
+- name: Start fortio server
+  systemd:
+    name: fortio-server
+    state: restarted
+    daemon_reload: yes

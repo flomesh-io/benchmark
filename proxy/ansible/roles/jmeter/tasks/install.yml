@@ -1,0 +1,17 @@
+- name: Download jmeter
+  tags: [download]
+  get_url:
+    url: https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.4.3.tgz
+    dest: /opt/
+
+- name: Unarchive
+  unarchive:
+    remote_src: yes
+    src: /opt/apache-jmeter-5.4.3.tgz
+    dest: /opt/
+
+- name: Set PATH
+  lineinfile:
+    line: "export PATH=$PATH:/opt/apache-jmeter-5.4.3/bin"
+    path: /etc/bash.bashrc
+  when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"

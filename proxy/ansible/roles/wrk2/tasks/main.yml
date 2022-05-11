@@ -1,47 +1,7 @@
-- name: Install build essentials
-  package:
-    name:
-      - git
-      - make
-      - gcc
-    state: present
+- name: Check if wrk2 is installed
+  stat:
+    path: /usr/bin/wrk
+  register: s
 
-- name: Install header packages
-  package:
-    name:
-      - libssl-dev
-      - zlib1g-dev
-      - python3-pip
-    state: present
-  when: ansible_pkg_mgr == 'apt'
-
-- name: Install openssl devel
-  package:
-    name:
-      - openssl-devel
-    state: present
-  when: ansible_pkg_mgr == 'yum'
-
-- name: Install wrk2
-  git:
-    repo: https://github.com/giltene/wrk2.git
-    dest: /tmp/wrk2
-  when: ansible_machine == 'x86_64'
-
-- name: Install wrk2
-  git:
-    repo: https://github.com/AmpereTravis/wrk2-aarch64.git
-    dest: /tmp/wrk2
-  when: ansible_machine == 'aarch64'
-
-- name: Make wrk2
-  make:
-    chdir: /tmp/wrk2
-    target: all
-
-- name: Install wrk2
-  copy:
-    remote_src: yes
-    src: /tmp/wrk2/wrk
-    dest: /usr/bin/wrk
-    mode: 0755
+- include_tasks: install.yml
+  when: not s.stat.exists

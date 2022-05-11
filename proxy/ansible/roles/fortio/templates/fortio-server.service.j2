@@ -1,0 +1,13 @@
+[Unit]
+Description=fortio server
+Documentation=https://github.com/fortio/fortio
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/fortio server -maxpayloadsizekb 2048
+Restart=always
+RestartSec=10s
+LimitNOFILE=655360
+
+[Install]
+WantedBy=multi-user.target
