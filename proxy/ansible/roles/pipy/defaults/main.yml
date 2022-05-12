@@ -1,4 +1,4 @@
 pipy_version: "0.30.0"
 os: "generic_linux"
 arch: "{{ansible_architecture}}"
-pipy_binary_package: "pipy-{{pipy_version}}-{{os}}-{{arch}}.tar.gz"
+pipy_binary_package: "pipy-{{pipy_version}}-{{os}}-{{ansible_architecture}}.tar.gz"

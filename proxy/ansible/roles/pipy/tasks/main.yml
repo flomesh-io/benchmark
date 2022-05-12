@@ -5,7 +5,7 @@
 
 - name: Download pipy
   get_url:
-    url: "https://pipy-oss-1255617643.cos-website.ap-beijing.myqcloud.com/repo/pipy/{{arch}}/binary/{{pipy_binary_package}}"
+    url: "https://pipy-oss-1255617643.cos-website.ap-beijing.myqcloud.com/repo/pipy/{{ansible_architecture}}/binary/{{pipy_binary_package}}"
     dest: "/tmp/{{pipy_binary_package}}"
 
 - name: Decompress tarball
