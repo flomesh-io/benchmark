@@ -12,7 +12,7 @@
   unarchive:
     remote_src: yes
     src: "/tmp/{{pipy_binary_package}}"
-    dest: /usr/local/bin
+    dest: /
 
 - name: Create pipy user
   user:
