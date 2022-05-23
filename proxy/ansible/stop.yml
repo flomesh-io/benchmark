@@ -1,0 +1,10 @@
+---
+- hosts: proxies
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: Stop pipy
+      service:
+        name: pipy
+        state: stopped
