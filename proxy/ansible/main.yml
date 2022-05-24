@@ -5,13 +5,6 @@
   tags: [always]
 
   tasks:
-    - name: Define proxy group
-      add_host:
-        groups:
-          - proxy_group
-        name: "{{item}}"
-      loop: "{{groups[os+'_'+arch]}}"
-
     - name: Define pipy repo
       add_host:
         groups:

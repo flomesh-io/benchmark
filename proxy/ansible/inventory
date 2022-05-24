@@ -3,7 +3,7 @@
 [client_group]
 client
 
-[proxies:children]
+[proxy_group:children]
 generic_linux_x86_64
 
 [generic_linux_x86_64]
