@@ -1,5 +1,5 @@
 ---
-- hosts: proxies
+- hosts: proxy_group
   gather_facts: no
   become: yes
 
