@@ -50,3 +50,11 @@
     state: restarted
     name: pipy
   tags: repo
+
+- name: Init repo
+  tags: repo
+  local_action:
+    module: ansible.builtin.shell ./init-repo.sh "{{hostvars[groups['pipy_repo'][0]]['ansible_default_ipv4']['address']}}:{{repo_port|default('6060')}}"
+    args:
+      chdir: pipy-repo
+  when: 'role == "repo"'
