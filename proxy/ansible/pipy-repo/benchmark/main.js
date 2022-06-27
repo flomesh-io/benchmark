@@ -1,5 +1,5 @@
 pipy()
-    .listen(6060)
+    .listen(8080)
         .serveHTTP(
-            msg => new Message("Hello")
+            msg => new Message("Hello\n")
         )

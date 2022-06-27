@@ -11,9 +11,9 @@ if [[ "$1" == "pipy" ]]; then
     #chmod o+w /proc/self/fd/2 || true
 
     for i in $(seq 1 1 $PIPY_SPAWN); do
-      exec /usr/local/bin/pipy ${PIPY_CONFIG_FILE} --reuse-port &
+      exec /usr/local/bin/pipy ${PIPY_CONFIG_FILE} --reuse-port --admin-port=6060 &
     done
-    exec /usr/local/bin/pipy ${PIPY_CONFIG_FILE} --reuse-port
+    exec /usr/local/bin/pipy ${PIPY_CONFIG_FILE} --reuse-port --admin-port=6060
   fi
 fi
 
