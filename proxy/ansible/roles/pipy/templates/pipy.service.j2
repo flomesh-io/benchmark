@@ -11,7 +11,7 @@ Environment=PIPY_CONFIG_FILE={% if role != "repo" %}
 ""
 {% endif %}
 Environment=PIPY_SPAWN={% if role != "repo" %}
-{{ansible_processor_vcpus - 1}}
+{{ansible_processor_nproc - 1}}
 {% else %}
 0
 {% endif %}
