@@ -1,0 +1,50 @@
+{
+  "nginx" : {
+    "transaction" : "nginx",
+    "sampleCount" : 6372544,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 20.544455244247278,
+    "medianResTime" : 8.0,
+    "minResTime" : 0.0,
+    "maxResTime" : 36773.0,
+    "pct1ResTime" : 11.0,
+    "pct2ResTime" : 22.0,
+    "pct3ResTime" : 1023.0,
+    "throughput" : 35206.45286041822,
+    "receivedKBytesPerSec" : 5363.483052954339,
+    "sentKBytesPerSec" : 3816.3244799867407
+  },
+  "pipy" : {
+    "transaction" : "pipy",
+    "sampleCount" : 6722685,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 19.53946778705375,
+    "medianResTime" : 5.0,
+    "minResTime" : 0.0,
+    "maxResTime" : 3526.0,
+    "pct1ResTime" : 65.0,
+    "pct2ResTime" : 76.0,
+    "pct3ResTime" : 1014.9900000000016,
+    "throughput" : 37076.356717405695,
+    "receivedKBytesPerSec" : 2063.8206375899654,
+    "sentKBytesPerSec" : 4200.056034393614
+  },
+  "Total" : {
+    "transaction" : "Total",
+    "sampleCount" : 13095229,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 20.028525808907713,
+    "medianResTime" : 8.0,
+    "minResTime" : 0.0,
+    "maxResTime" : 36773.0,
+    "pct1ResTime" : 11.0,
+    "pct2ResTime" : 22.0,
+    "pct3ResTime" : 1023.0,
+    "throughput" : 72221.64681226561,
+    "receivedKBytesPerSec" : 7417.985925478781,
+    "sentKBytesPerSec" : 8009.750566160656
+  }
+}
